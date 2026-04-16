@@ -72,3 +72,4 @@ export default defineConfig([
 ])
 ```
 # raximalearning-center
+# raxima-lerning-center

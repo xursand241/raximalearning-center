@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
+import { useAuthStore } from "@/store/auth";
 import { 
   LayoutDashboard, Bell, Users, ChevronDown, ChevronRight, 
   BookOpen, Layers, CreditCard, Calendar, Clock, 
   PieChart, MessageSquare, Settings, LogOut, X, 
-  ShieldCheck, Link as LinkIcon
+  ShieldCheck, Link as LinkIcon, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,7 @@ const navItems = [
       { name: "Ota-onalar", path: "/admin/parents" },
     ]
   },
-  { name: "Guruhlar", path: "/admin/groups", icon: Users }, // Replace with a group-specific icon
+  { name: "Guruhlar", path: "/admin/groups", icon: Layers }, 
   { name: "Fanlar", path: "/admin/subjects", icon: BookOpen },
   { name: "Moliya", path: "/admin/payments", icon: CreditCard },
   { name: "Dars jadvali", path: "/admin/schedule", icon: Calendar },
@@ -33,14 +34,17 @@ const navItems = [
 
 export default function AdminLayout() {
   const location = useLocation();
-  const isAuthenticated = true;
-  const role = "admin";
+  const { user, isAuthenticated, logout } = useAuthStore();
+  
+  // For development convenience, we'll allow access if no user is set but we are on an admin route
+  // In production, we'd be stricter.
+  const isAdmin = user?.role === "admin" || user?.role === "superadmin"; 
 
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     "Foydalanuvchilar": true, // Kept open by default to match screenshot
   });
 
-  if (!isAuthenticated || role !== "admin") {
+  if (!isAuthenticated && !isAdmin) {
     return <Navigate to="/auth/login" />;
   }
 
@@ -57,7 +61,7 @@ export default function AdminLayout() {
         {/* Logo Section */}
         <div className="h-20 flex items-center justify-between px-6 shrink-0 relative">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-[12px] bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.4)]">
+             <div className="w-10 h-10 rounded-[12px] bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.4)]">
                <BookOpen className="w-5 h-5 text-white" />
              </div>
              <div className="flex flex-col leading-tight">
@@ -130,7 +134,7 @@ export default function AdminLayout() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-[11px] rounded-[10px] text-[14.5px] font-semibold transition-all duration-200 group relative mb-1",
                     isActive 
-                      ? "bg-[#3e4cf1] text-white shadow-[0_4px_12px_rgba(62,76,241,0.3)] border border-[#5262f5]/30" 
+                      ? "bg-primary text-white shadow-[0_4px_12px_rgba(62,76,241,0.3)] border border-primary/30" 
                       : "text-slate-400 hover:text-slate-200 hover:bg-[#1a1e2f]"
                   )}
                 >
@@ -152,20 +156,23 @@ export default function AdminLayout() {
            <div className="bg-[#181b2a] rounded-xl p-3 flex items-center justify-between border border-white/[0.02]">
               <div className="flex items-center gap-3">
                  <div className="w-10 h-10 rounded-lg bg-[#24283b] flex items-center justify-center font-bold text-white relative">
-                   T
+                   {user?.name?.[0] || 'A'}
                    <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-[#00d084] rounded-full border-2 border-[#181b2a]"></span>
                  </div>
                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-white leading-tight">Raxima Academy</span>
+                    <span className="text-sm font-bold text-white leading-tight">{user?.name || 'Raxima Admin'}</span>
                     <div className="flex items-center gap-1 mt-0.5">
                       <ShieldCheck className="w-[10px] h-[10px] text-[#4dccff]" />
-                      <span className="text-[10px] font-extrabold text-[#4dccff] tracking-wider uppercase">Owner</span>
+                      <span className="text-[10px] font-extrabold text-[#4dccff] tracking-wider uppercase">{user?.role || 'Admin'}</span>
                     </div>
                  </div>
               </div>
            </div>
            
-           <button className="flex items-center justify-center gap-2 w-full mt-3 py-[10px] rounded-xl text-[13px] font-bold text-[#ff6b6b] hover:bg-[#ff6b6b]/10 transition-colors">
+           <button 
+             onClick={logout}
+             className="flex items-center justify-center gap-2 w-full mt-3 py-[10px] rounded-xl text-[13px] font-bold text-[#ff6b6b] hover:bg-[#ff6b6b]/10 transition-colors"
+           >
              <LogOut className="w-[15px] h-[15px]" strokeWidth={2.5} />
              CHIQISH
            </button>
@@ -173,14 +180,40 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-white dark:bg-[#0b0e14]">
-        {/* We can place a modern Header here for the Admin workspace */}
-        <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-end px-10 shrink-0 z-10 border-b border-gray-100 dark:border-white/5">
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0e14]">
+        {/* Modern Header */}
+        <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-10 shrink-0 z-10 border-b border-gray-100 dark:border-white/5 sticky top-0">
+           <div className="flex-1 max-w-xl">
+              <div className="relative group">
+                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                 <input 
+                   type="text" 
+                   placeholder="Tizim bo'ylab qidirish..." 
+                   className="w-full bg-slate-100/50 dark:bg-white/5 border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-card rounded-2xl py-2.5 pl-11 pr-4 text-sm font-medium transition-all outline-none"
+                 />
+                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/10 text-[10px] font-bold text-slate-400 bg-white dark:bg-white/5">⌘</kbd>
+                    <kbd className="px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/10 text-[10px] font-bold text-slate-400 bg-white dark:bg-white/5">K</kbd>
+                 </div>
+              </div>
+           </div>
+
            <div className="flex items-center gap-6">
-              {/* Add global actions here if needed */}
+              <div className="flex items-center gap-3">
+                 <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all hover:shadow-sm relative">
+                    <Bell className="w-5 h-5" />
+                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b0e14]"></span>
+                 </button>
+                 <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all hover:shadow-sm">
+                    <Settings className="w-5 h-5" />
+                 </button>
+              </div>
+
+              <div className="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
+
               <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                 <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Tizim Online</span>
+                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                 <span className="text-xs font-bold text-slate-500 dark:text-gray-400 tracking-wide uppercase">Tizim Online</span>
               </div>
            </div>
         </header>

@@ -1,20 +1,73 @@
-import { useState } from "react";
-import { Search, Plus, Filter, MoreHorizontal, Users, CreditCard, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Filter, MoreHorizontal, Users, CreditCard, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { profileService } from "@/services/profileService";
 
 export default function ParentsPage() {
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newParent, setNewParent] = useState({ firstName: "", lastName: "", phone: "" });
+  const [parents, setParents] = useState<any[]>([]);
 
-  const parents = [
-    { id: "PAR-001", name: "Anvarjon Xoliqov", phone: "+998 90 123 45 67", balance: "0 UZS", children: 1, lastLogin: "Bugun, 09:12", status: "Aktiv" },
-    { id: "PAR-002", name: "Gulzoda Alimova", phone: "+998 93 987 65 43", balance: "0 UZS", children: 2, lastLogin: "Kecha, 18:45", status: "Aktiv" },
-    { id: "PAR-003", name: "Rustam Karimov", phone: "+998 94 321 76 54", balance: "-1,100,000 UZS", children: 1, lastLogin: "3 kun oldin", status: "Aktiv" },
-    { id: "PAR-004", name: "Nigora Usmanova", phone: "+998 97 111 22 33", balance: "-350,000 UZS", children: 3, lastLogin: "10 Aprel, 14:00", status: "Aktiv" },
-    { id: "PAR-005", name: "Azimjon Shodiyev", phone: "+998 95 666 77 88", balance: "0 UZS", children: 1, lastLogin: "Hech qachon", status: "Noaktiv" },
-  ];
+  useEffect(() => {
+    fetchParents();
+  }, []);
+
+  const fetchParents = async () => {
+    setIsLoading(true);
+    try {
+      const data = await profileService.getParentsWithStats();
+      setParents(data.map(p => ({
+        id: p.id.slice(0, 8).toUpperCase(),
+        dbId: p.id,
+        name: `${p.first_name} ${p.last_name}`,
+        firstName: p.first_name,
+        lastName: p.last_name,
+        phone: p.phone || "Kiritilmagan",
+        balance: "0 UZS",
+        children: p.childrenCount,
+        lastLogin: "Hech qachon",
+        status: p.is_active ? "Aktiv" : "Noaktiv"
+      })));
+    } catch (err) {
+      console.error("Error fetching parents:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newParent.firstName || !newParent.lastName || !newParent.phone) return;
+
+    setIsLoading(true);
+    try {
+      await profileService.createProfile({
+        id: crypto.randomUUID(),
+        first_name: newParent.firstName,
+        last_name: newParent.lastName,
+        phone: newParent.phone,
+        role: 'parent'
+      });
+      await fetchParents();
+      setIsModalOpen(false);
+      setNewParent({ firstName: "", lastName: "", phone: "" });
+    } catch (err) {
+      console.error("Error creating parent:", err);
+      alert("Xatolik yuz berdi");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredParents = parents.filter(p => 
+    p.name.toLowerCase().includes(search.toLowerCase()) || 
+    p.phone.includes(search)
+  );
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
@@ -26,7 +79,7 @@ export default function ParentsPage() {
            <p className="text-gray-500 font-medium text-[15px] mt-1">O'quvchilarning vasiylari, to'lovlar va profil boshqaruvi.</p>
         </div>
         <div className="flex items-center gap-3">
-           <Button className="bg-[#3e4cf1] hover:bg-[#3442d9] text-white font-bold h-11 px-6 rounded-xl shadow-lg transition-all">
+           <Button onClick={() => setIsModalOpen(true)} className="bg-[#3e4cf1] hover:bg-[#3442d9] text-white font-bold h-11 px-6 rounded-xl shadow-lg transition-all">
              <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} /> Yangi Ota-ona
            </Button>
         </div>
@@ -64,7 +117,7 @@ export default function ParentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-              {parents.map((parent) => (
+              {filteredParents.length > 0 ? filteredParents.map((parent) => (
                 <tr key={parent.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-4">
@@ -103,11 +156,57 @@ export default function ParentsPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-gray-500 font-medium">Bunday ota-ona topilmadi</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
+      
+      {/* Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#141724] rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-white/10">
+            <div className="border-b border-gray-100 dark:border-white/5 p-5 flex justify-between items-center bg-gray-50/50 dark:bg-white/[0.02]">
+              <div>
+                <h2 className="text-xl font-black text-[#141724] dark:text-white">Yangi ota-ona qo'shish</h2>
+                <p className="text-sm font-medium text-gray-500 mt-1">Vasiyning ma'lumotlarini kiriting.</p>
+              </div>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreate} className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Ism *</label>
+                  <Input required value={newParent.firstName} onChange={(e) => setNewParent({...newParent, firstName: e.target.value})} placeholder="Masalan: Anvarjon" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Familiya *</label>
+                  <Input required value={newParent.lastName} onChange={(e) => setNewParent({...newParent, lastName: e.target.value})} placeholder="Masalan: Xoliqov" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Telefon raqami *</label>
+                <Input required value={newParent.phone} onChange={(e) => setNewParent({...newParent, phone: e.target.value})} placeholder="+998 90 123 45 67" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+              </div>
+              <div className="pt-4 flex gap-3">
+                <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1 h-11 font-bold border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                  Bekor qilish
+                </Button>
+                <Button type="submit" disabled={isLoading} className="flex-1 h-11 bg-[#3e4cf1] hover:bg-blue-700 text-white font-bold shadow-lg">
+                  {isLoading ? "Saqlanmoqda..." : "Saqlash"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
     </div>
   );

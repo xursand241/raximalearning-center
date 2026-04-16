@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Link as LinkIcon, UserPlus, Users, ShieldAlert } from "lucide-react";
+import { Search, Link as LinkIcon, UserPlus, Users, ShieldAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,10 @@ import { Card } from "@/components/ui/card";
 export default function RelationsPage() {
   const [search, setSearch] = useState("");
 
-  const relations = [
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newRelation, setNewRelation] = useState({ parentName: "", parentPhone: "", childName: "", childGroup: "" });
+
+  const [relations, setRelations] = useState([
     { 
       id: "REL-001", 
       parent: { name: "Anvarjon Xoliqov", phone: "+998 90 123 45 67" }, 
@@ -28,7 +31,31 @@ export default function RelationsPage() {
       parent: { name: "Nigora Usmanova", phone: "+998 97 111 22 33" }, 
       children: [{ name: "Usmonova Laylo", group: "Foundation" }, { name: "Usmonov Behzod", group: "IT Kids" }, { name: "Usmonova Asal", group: "Mental Arithmetics" }] 
     },
-  ];
+  ]);
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRelation.parentName || !newRelation.childName) return;
+
+    const rel = {
+      id: "REL-" + Math.floor(100 + Math.random() * 900),
+      parent: { name: newRelation.parentName, phone: newRelation.parentPhone },
+      children: [{ name: newRelation.childName, group: newRelation.childGroup }]
+    };
+
+    setRelations([rel, ...relations]);
+    setIsModalOpen(false);
+    setNewRelation({ parentName: "", parentPhone: "", childName: "", childGroup: "" });
+  };
+
+  const filteredRelations = relations.filter(r => 
+    r.parent.name.toLowerCase().includes(search.toLowerCase()) || 
+    r.parent.phone.includes(search) ||
+    r.children.some(c => c.name.toLowerCase().includes(search.toLowerCase()))
+  );
+  
+  const totalFamilies = relations.length;
+  const totalConnections = relations.reduce((acc, curr) => acc + curr.children.length, 0);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
@@ -40,7 +67,7 @@ export default function RelationsPage() {
            <p className="text-gray-500 font-medium text-[15px] mt-1">Ota-onalar va o'quvchilar o'rtasidagi bog'lanishlarni (qarindoshlikni) boshqarish.</p>
         </div>
         <div className="flex items-center gap-3">
-           <Button className="bg-[#3e4cf1] hover:bg-blue-700 text-white font-bold h-11 px-6 rounded-xl shadow-lg shadow-blue-500/25 transition-all">
+           <Button onClick={() => setIsModalOpen(true)} className="bg-[#3e4cf1] hover:bg-blue-700 text-white font-bold h-11 px-6 rounded-xl shadow-lg shadow-blue-500/25 transition-all">
              <LinkIcon className="w-5 h-5 mr-2" strokeWidth={2.5} /> Yangi bog'lanish
            </Button>
         </div>
@@ -55,7 +82,7 @@ export default function RelationsPage() {
                </div>
                <div>
                   <h3 className="text-[13px] font-bold text-gray-400 dark:text-gray-500 tracking-wider uppercase mb-1">Tizimdagi Oila Soni</h3>
-                  <p className="text-[28px] font-black text-[#141724] dark:text-white leading-none">850</p>
+                  <p className="text-[28px] font-black text-[#141724] dark:text-white leading-none">{totalFamilies}</p>
                </div>
             </div>
          </Card>
@@ -66,7 +93,7 @@ export default function RelationsPage() {
                </div>
                <div>
                   <h3 className="text-[13px] font-bold text-gray-400 dark:text-gray-500 tracking-wider uppercase mb-1">Jami Bog'lanishlar</h3>
-                  <p className="text-[28px] font-black text-[#141724] dark:text-white leading-none">1,120</p>
+                  <p className="text-[28px] font-black text-[#141724] dark:text-white leading-none">{totalConnections}</p>
                </div>
             </div>
          </Card>
@@ -111,7 +138,7 @@ export default function RelationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-              {relations.map((rel) => (
+              {filteredRelations.length > 0 ? filteredRelations.map((rel) => (
                 <tr key={rel.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap text-[13px] font-bold text-gray-500 dark:text-gray-400">
                     {rel.id}
@@ -153,12 +180,72 @@ export default function RelationsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={4} className="py-12 text-center text-gray-500 font-medium bg-gray-50/50 dark:bg-white/[0.02]">
+                    Bunday bog'lanish topilmadi
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
       
+      {/* Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#141724] rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-white/10">
+            <div className="border-b border-gray-100 dark:border-white/5 p-5 flex justify-between items-center bg-gray-50/50 dark:bg-white/[0.02]">
+              <div>
+                <h2 className="text-xl font-black text-[#141724] dark:text-white">Yangi bog'lanish</h2>
+                <p className="text-sm font-medium text-gray-500 mt-1">Ota-ona va farzandni tizimda biriktirish.</p>
+              </div>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreate} className="p-5 space-y-5">
+              {/* Parent Info */}
+              <div className="space-y-4">
+                 <h3 className="text-sm font-black text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-white/5 pb-2">Ota-ona ma'lumotlari</h3>
+                 <div className="space-y-1.5">
+                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Ism va familiyasi *</label>
+                   <Input required value={newRelation.parentName} onChange={(e) => setNewRelation({...newRelation, parentName: e.target.value})} placeholder="Masalan: Anvarjon Xoliqov" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                 </div>
+                 <div className="space-y-1.5">
+                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Telefon raqami *</label>
+                   <Input required value={newRelation.parentPhone} onChange={(e) => setNewRelation({...newRelation, parentPhone: e.target.value})} placeholder="+998 90 123 45 67" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                 </div>
+              </div>
+
+              {/* Student Info */}
+              <div className="space-y-4 pt-2">
+                 <h3 className="text-sm font-black text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-white/5 pb-2">O'quvchi ma'lumotlari</h3>
+                 <div className="space-y-1.5">
+                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Farzand ism va familiyasi *</label>
+                   <Input required value={newRelation.childName} onChange={(e) => setNewRelation({...newRelation, childName: e.target.value})} placeholder="Masalan: Azizov Timur" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                 </div>
+                 <div className="space-y-1.5">
+                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">O'qiyotgan guruhi (Ixtiyoriy)</label>
+                   <Input value={newRelation.childGroup} onChange={(e) => setNewRelation({...newRelation, childGroup: e.target.value})} placeholder="Masalan: IELTS B2" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                 </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1 h-11 font-bold border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                  Bekor qilish
+                </Button>
+                <Button type="submit" className="flex-1 h-11 bg-[#3e4cf1] hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/25">
+                  Saqlash
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

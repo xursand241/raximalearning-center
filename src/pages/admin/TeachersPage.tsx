@@ -1,20 +1,81 @@
-import { useState } from "react";
-import { Search, Plus, Filter, MoreHorizontal, Users, GraduationCap, Star, BookOpen, Fingerprint } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Filter, MoreHorizontal, Users, GraduationCap, Star, BookOpen, Fingerprint, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { profileService } from "@/services/profileService";
 
 export default function TeachersPage() {
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTeacher, setNewTeacher] = useState({ firstName: "", lastName: "", phone: "", subjects: "" });
+  const [teachers, setTeachers] = useState<any[]>([]);
 
-  const teachers = [
-    { id: "TCH-001", name: "Javohir Qosimov", phone: "+998 90 123 45 67", subjects: ["Matematika", "Fizika"], groupsCount: 4, studentsCount: 82, rating: 4.9, status: "Aktiv" },
-    { id: "TCH-002", name: "Malika Tohirova", phone: "+998 93 987 65 43", subjects: ["IELTS", "General English"], groupsCount: 6, studentsCount: 120, rating: 5.0, status: "Aktiv" },
-    { id: "TCH-003", name: "Rustam Aliyev", phone: "+998 94 321 76 54", subjects: ["Dasturlash (Python)"], groupsCount: 2, studentsCount: 45, rating: 4.7, status: "Ta'tilda" },
-    { id: "TCH-004", name: "Zuhra Niyozova", phone: "+998 97 111 22 33", subjects: ["Kimyo", "Biologiya"], groupsCount: 3, studentsCount: 56, rating: 4.8, status: "Aktiv" },
-    { id: "TCH-005", name: "Sanjar Bekmurodov", phone: "+998 99 555 66 77", subjects: ["Arab tili"], groupsCount: 5, studentsCount: 95, rating: 4.6, status: "Noaktiv" },
-  ];
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
+
+  const fetchTeachers = async () => {
+    setIsLoading(true);
+    try {
+      const data = await profileService.getTeachersWithStats();
+      setTeachers(data.map(t => ({
+        id: t.id.slice(0, 8).toUpperCase(),
+        dbId: t.id,
+        name: `${t.first_name} ${t.last_name}`,
+        firstName: t.first_name,
+        lastName: t.last_name,
+        phone: t.phone || "Kiritilmagan",
+        subjects: ["Pedagog"], // Default for now
+        groupsCount: t.groupsCount,
+        studentsCount: t.studentsCount,
+        rating: 5.0,
+        status: t.is_active ? "Aktiv" : "Noaktiv"
+      })));
+    } catch (err) {
+      console.error("Error fetching teachers:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTeacher.firstName || !newTeacher.lastName || !newTeacher.phone) return;
+
+    setIsLoading(true);
+    try {
+      await profileService.createProfile({
+        id: crypto.randomUUID(),
+        first_name: newTeacher.firstName,
+        last_name: newTeacher.lastName,
+        phone: newTeacher.phone,
+        role: 'teacher'
+      });
+
+      await fetchTeachers();
+      setIsModalOpen(false);
+      setNewTeacher({ firstName: "", lastName: "", phone: "", subjects: "" });
+    } catch (err) {
+       console.error("Error creating teacher:", err);
+       alert("Xatolik yuz berdi");
+    } finally {
+       setIsLoading(false);
+    }
+  };
+
+  const filteredTeachers = teachers.filter(t => 
+    t.name.toLowerCase().includes(search.toLowerCase()) || 
+    t.phone.includes(search) || 
+    t.id.toLowerCase().includes(search.toLowerCase())
+  );
+  
+  const total = teachers.length;
+  const active = teachers.filter(t => t.status === 'Aktiv').length;
+  const activeGroups = teachers.reduce((acc, curr) => acc + curr.groupsCount, 0);
+  const avgRating = total > 0 ? (teachers.reduce((acc, curr) => acc + curr.rating, 0) / total).toFixed(1) : "0.0";
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
@@ -26,7 +87,7 @@ export default function TeachersPage() {
            <p className="text-gray-500 font-medium text-[15px] mt-1">Akademiya ustozlarini boshqarish, guruhlar va reytinglarni kuzatish.</p>
         </div>
         <div className="flex items-center gap-3">
-           <Button className="bg-[#141724] dark:bg-white text-white dark:text-[#141724] hover:bg-gray-800 dark:hover:bg-gray-100 font-bold h-11 px-6 rounded-xl shadow-lg transition-all">
+           <Button onClick={() => setIsModalOpen(true)} className="bg-[#141724] dark:bg-white text-white dark:text-[#141724] hover:bg-gray-800 dark:hover:bg-gray-100 font-bold h-11 px-6 rounded-xl shadow-lg transition-all">
              <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} /> Yangi Ustoz
            </Button>
         </div>
@@ -37,18 +98,18 @@ export default function TeachersPage() {
          <div className="bg-white dark:bg-[#141724] p-5 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-center shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><GraduationCap className="w-16 h-16"/></div>
             <p className="text-[13px] font-black text-gray-400 tracking-wider uppercase mb-1">Jami O'qituvchilar</p>
-            <p className="text-3xl font-black text-[#141724] dark:text-white">24</p>
+            <p className="text-3xl font-black text-[#141724] dark:text-white">{total}</p>
          </div>
          <div className="bg-white dark:bg-[#141724] p-5 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-center shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity text-emerald-500"><Fingerprint className="w-16 h-16"/></div>
             <p className="text-[13px] font-black text-emerald-500 tracking-wider uppercase mb-1">Aktiv Ustozlar</p>
-            <p className="text-3xl font-black text-[#141724] dark:text-white">21</p>
+            <p className="text-3xl font-black text-[#141724] dark:text-white">{active}</p>
          </div>
          <div className="bg-white dark:bg-[#141724] p-5 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-center shadow-sm relative overflow-hidden group items-start">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity text-blue-500"><BookOpen className="w-16 h-16"/></div>
             <p className="text-[13px] font-black text-gray-400 tracking-wider uppercase mb-1">Aktiv Guruhlar</p>
             <div className="flex items-baseline gap-2">
-               <p className="text-3xl font-black text-[#141724] dark:text-white">48</p>
+               <p className="text-3xl font-black text-[#141724] dark:text-white">{activeGroups}</p>
                <span className="text-sm font-bold text-blue-500">ta</span>
             </div>
          </div>
@@ -56,7 +117,7 @@ export default function TeachersPage() {
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Star className="w-16 h-16"/></div>
             <p className="text-[13px] font-black text-blue-200 tracking-wider uppercase mb-1">O'rtacha Reyting</p>
             <div className="flex items-baseline gap-2 mt-1">
-               <p className="text-3xl font-black text-white">4.8</p>
+               <p className="text-3xl font-black text-white">{avgRating}</p>
                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
             </div>
          </div>
@@ -95,7 +156,7 @@ export default function TeachersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-              {teachers.map((teacher) => (
+              {filteredTeachers.length > 0 ? filteredTeachers.map((teacher) => (
                 <tr key={teacher.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-4">
@@ -152,11 +213,61 @@ export default function TeachersPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-gray-500 font-medium">Bunday ustoz topilmadi</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
+      
+      {/* Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#141724] rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-white/10">
+            <div className="border-b border-gray-100 dark:border-white/5 p-5 flex justify-between items-center bg-gray-50/50 dark:bg-white/[0.02]">
+              <div>
+                <h2 className="text-xl font-black text-[#141724] dark:text-white">Yangi o'qituvchi qo'shish</h2>
+                <p className="text-sm font-medium text-gray-500 mt-1">O'qituvchi ma'lumotlarini kiriting.</p>
+              </div>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreate} className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Ism *</label>
+                  <Input required value={newTeacher.firstName} onChange={(e) => setNewTeacher({...newTeacher, firstName: e.target.value})} placeholder="Masalan: Javohir" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Familiya *</label>
+                  <Input required value={newTeacher.lastName} onChange={(e) => setNewTeacher({...newTeacher, lastName: e.target.value})} placeholder="Masalan: Qosimov" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Telefon raqami *</label>
+                <Input required value={newTeacher.phone} onChange={(e) => setNewTeacher({...newTeacher, phone: e.target.value})} placeholder="+998 90 123 45 67" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Yo'nalish (Fanlar) (Ixtiyoriy, vergul bilan)</label>
+                <Input value={newTeacher.subjects} onChange={(e) => setNewTeacher({...newTeacher, subjects: e.target.value})} placeholder="Masalan: Matematika, Fizika" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+              </div>
+              <div className="pt-4 flex gap-3">
+                <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1 h-11 font-bold border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                  Bekor qilish
+                </Button>
+                <Button type="submit" disabled={isLoading} className="flex-1 h-11 bg-[#141724] dark:bg-white text-white dark:text-[#141724] hover:bg-gray-800 dark:hover:bg-gray-100 font-bold shadow-lg">
+                  {isLoading ? "Saqlanmoqda..." : "Saqlash"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
     </div>
   );
