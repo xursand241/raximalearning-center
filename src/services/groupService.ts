@@ -75,5 +75,22 @@ export const groupService = {
     
     if (error) throw error;
     return data;
+  },
+
+  async getStudentGroups(student_id: string) {
+    const { data, error } = await supabase
+      .from('student_groups')
+      .select(`
+        group_id,
+        groups (
+          id, name, start_date, is_active,
+          subjects (name),
+          profiles:teacher_id (first_name, last_name)
+        )
+      `)
+      .eq('student_id', student_id);
+
+    if (error) throw error;
+    return data;
   }
 };

@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { Search, Filter, Trophy, Star, TrendingUp, AlertTriangle, FileText, ArrowRight } from "lucide-react";
+import { Search, Filter, Trophy, Star, TrendingUp, AlertTriangle, FileText, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function GradesPage() {
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"none" | "desc" | "asc">("none");
+  const [isNewExamOpen, setIsNewExamOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newGroup, setNewGroup] = useState("");
+  const [newDate, setNewDate] = useState("");
 
-  const exams = [
+  const [exams, setExams] = useState([
     { id: "EX-101", title: "Oylik Test (Mart)", group: "IELTS Foundation", date: "24 Mart, 2026", avgScore: 78, students: 18 },
     { id: "EX-102", title: "Mock Exam #4", group: "IELTS B2", date: "20 Mart, 2026", avgScore: 6.5, students: 25 },
     { id: "EX-103", title: "Oral Test", group: "Kids Math", date: "15 Mart, 2026", avgScore: 85, students: 12 },
-  ];
+  ]);
 
   const studentGrades = [
     { id: "ST-001", name: "Azizov Timur", group: "IELTS B2", exam: "Mock Exam #4", score: "7.0", maxScore: "9.0", status: "A'lo", trend: "up" },
@@ -20,6 +25,36 @@ export default function GradesPage() {
     { id: "ST-004", name: "Usmonova Laylo", group: "Python 02", exam: "Loyiha ishi", score: "95", maxScore: "100", status: "A'lo", trend: "up" },
     { id: "ST-005", name: "Alimov Jasur", group: "IELTS Foundation", exam: "Listening Test", score: "4.5", maxScore: "9.0", status: "Qoniqarsiz", trend: "down" },
   ];
+
+  const handleSort = () => {
+    if (sortBy === "none") setSortBy("desc");
+    else if (sortBy === "desc") setSortBy("asc");
+    else setSortBy("none");
+  };
+
+  const handleAddExam = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle || !newGroup || !newDate) return;
+    
+    setExams([
+      { id: `EX-${Math.floor(Math.random() * 1000)}`, title: newTitle, group: newGroup, date: newDate, avgScore: 0, students: 0 },
+      ...exams
+    ]);
+    
+    setNewTitle("");
+    setNewGroup("");
+    setNewDate("");
+    setIsNewExamOpen(false);
+  };
+
+  const filteredGrades = [...studentGrades]
+    .filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === "none") return 0;
+      const scoreA = parseFloat(a.score);
+      const scoreB = parseFloat(b.score);
+      return sortBy === "desc" ? scoreB - scoreA : scoreA - scoreB;
+    });
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
@@ -31,10 +66,10 @@ export default function GradesPage() {
            <p className="text-gray-500 font-medium text-[15px] mt-1">O'quvchilarning reytinglari, test natijalari va o'zlashtirish tahlili.</p>
         </div>
         <div className="flex items-center gap-3">
-           <Button variant="outline" className="h-11 px-5 rounded-xl border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-white/5 shadow-sm">
-             <Filter className="w-4 h-4 mr-2" /> Saralash
+           <Button variant="outline" onClick={handleSort} className="h-11 px-5 rounded-xl border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-white/5 shadow-sm transition-all">
+             <Filter className="w-4 h-4 mr-2" /> Saralash {sortBy === "desc" ? "↓" : sortBy === "asc" ? "↑" : ""}
            </Button>
-           <Button className="bg-[#141724] dark:bg-white text-white dark:text-[#141724] font-bold h-11 px-6 rounded-xl shadow-lg transition-all hover:bg-gray-800 dark:hover:bg-gray-200">
+           <Button onClick={() => setIsNewExamOpen(true)} className="bg-[#141724] dark:bg-white text-white dark:text-[#141724] font-bold h-11 px-6 rounded-xl shadow-lg transition-all hover:bg-gray-800 dark:hover:bg-gray-200">
              <Trophy className="w-5 h-5 mr-2 text-amber-400" strokeWidth={2.5} /> Yangi Imtihon
            </Button>
         </div>
@@ -137,7 +172,7 @@ export default function GradesPage() {
                  </tr>
                </thead>
                <tbody className="divide-y divide-gray-50 dark:divide-white/5">
-                 {studentGrades.map((student) => (
+                 {filteredGrades.map((student) => (
                    <tr key={student.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group">
                      <td className="px-5 py-4 whitespace-nowrap">
                        <div className="flex flex-col">
@@ -176,6 +211,60 @@ export default function GradesPage() {
          </Card>
 
       </div>
+
+      {/* New Exam Modal */}
+      {isNewExamOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="w-full max-w-md border-none shadow-2xl bg-white dark:bg-[#141724] rounded-3xl overflow-hidden scale-in-95 animate-in duration-200">
+            <CardHeader className="px-6 py-5 border-b border-gray-50 dark:border-white/5 flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-black text-[#141724] dark:text-white">Yangi Imtihon</CardTitle>
+              <button type="button" onClick={() => setIsNewExamOpen(false)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </CardHeader>
+            <form onSubmit={handleAddExam}>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Imtihon nomi</label>
+                  <Input 
+                    placeholder="Masalan: Oylik test" 
+                    value={newTitle} 
+                    onChange={e => setNewTitle(e.target.value)} 
+                    className="h-12 bg-gray-50 dark:bg-white/5 border-none rounded-xl text-[#141724] dark:text-white font-medium"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Guruh</label>
+                  <Input 
+                    placeholder="Masalan: IELTS B2" 
+                    value={newGroup} 
+                    onChange={e => setNewGroup(e.target.value)} 
+                    className="h-12 bg-gray-50 dark:bg-white/5 border-none rounded-xl text-[#141724] dark:text-white font-medium"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Sana</label>
+                  <Input 
+                    type="date"
+                    value={newDate} 
+                    onChange={e => setNewDate(e.target.value)} 
+                    className="h-12 bg-gray-50 dark:bg-white/5 border-none rounded-xl text-[#141724] dark:text-white font-medium block"
+                    required
+                  />
+                </div>
+              </CardContent>
+              <div className="p-6 pt-0 flex gap-3">
+                <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl dark:border-white/10 dark:hover:bg-white/5" onClick={() => setIsNewExamOpen(false)}>Bekor qilish</Button>
+                <Button type="submit" className="flex-1 h-12 bg-[#141724] dark:bg-white text-white dark:text-[#141724] hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl shadow-lg font-bold">
+                  Qo'shish
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

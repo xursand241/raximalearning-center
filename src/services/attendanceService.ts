@@ -32,5 +32,19 @@ export const attendanceService = {
     
     if (error) throw error;
     return data;
+  },
+
+  async getStudentAttendance(student_id: string) {
+    const { data, error } = await supabase
+      .from('attendance')
+      .select(`
+        *,
+        groups (name)
+      `)
+      .eq('student_id', student_id)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
   }
 };

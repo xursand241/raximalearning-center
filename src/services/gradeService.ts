@@ -52,5 +52,19 @@ export const gradeService = {
     
     if (error) throw error;
     return data;
+  },
+
+  async getStudentGrades(student_id: string) {
+    const { data, error } = await supabase
+      .from('grades')
+      .select(`
+        *,
+        exams (title, exam_date, max_score, groups (name))
+      `)
+      .eq('student_id', student_id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
   }
 };

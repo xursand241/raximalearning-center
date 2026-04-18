@@ -55,5 +55,16 @@ export const financeService = {
     
     if (error) throw error;
     return data;
+  },
+
+  async getStudentPayments(student_id: string) {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('student_id', student_id)
+      .order('paid_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
   }
 };

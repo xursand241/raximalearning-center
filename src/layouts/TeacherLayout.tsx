@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Outlet, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, BookOpen, Clock, 
   MessageSquare, UserCircle, LogOut, Bell,
@@ -19,12 +19,51 @@ const sidebarLinks = [
 
 export default function TeacherLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // Search State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   const isTeacher = user?.role === "teacher" || true; // Dev fallback
 
-  if (!isAuthenticated && !isTeacher) {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const mockSearchData = [
+    { id: 1, type: "O'quvchi", title: "Aliyeva Nargiza", desc: "General English", icon: Users, path: "/teacher/progress" },
+    { id: 2, type: "O'quvchi", title: "Karimov Jasur", desc: "IELTS B2", icon: Users, path: "/teacher/progress" },
+    { id: 3, type: "O'quvchi", title: "Rustamov Behzod", desc: "IELTS Foundation", icon: Users, path: "/teacher/progress" },
+    { id: 4, type: "Xabar", title: "Ota-ona (Sobirovlar)", desc: "Assalomu alaykum ustoz...", icon: MessageSquare, path: "/teacher/messages" },
+    { id: 5, type: "Xabar", title: "Rahbariyat", desc: "Majlis bekor qilindi.", icon: MessageSquare, path: "/teacher/messages" },
+    { id: 6, type: "Vazifa", title: "Mock Exam #1", desc: "Foundation guruhi uchun test", icon: BookOpen, path: "/teacher/assessments" },
+    { id: 7, type: "Vazifa", title: "Unit 5 Reading", desc: "IELTS B2", icon: BookOpen, path: "/teacher/assessments" },
+  ];
+
+  const searchResults = mockSearchData.filter(item => 
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSearchSelect = (path: string) => {
+    navigate(path);
+    setIsSearchOpen(false);
+    setSearchQuery("");
+  };
+
+
+  if (!isAuthenticated) {
     return <Navigate to="/auth/login" />;
   }
 
@@ -108,7 +147,10 @@ export default function TeacherLayout() {
            </div>
            
            <button 
-             onClick={logout}
+             onClick={async () => {
+               await logout();
+               navigate("/auth/login");
+             }}
              className={cn(
                "flex items-center gap-3 w-full mt-3 py-3 rounded-xl text-[13px] font-bold text-rose-400 hover:bg-rose-500/10 transition-all group",
                isSidebarOpen ? "px-3" : "justify-center"
@@ -123,19 +165,57 @@ export default function TeacherLayout() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Modern Header */}
-        <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-10 shrink-0 z-10 border-b border-slate-100 dark:border-white/5 sticky top-0">
-           <div className="flex-1 max-w-xl">
-              <div className="relative group">
-                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                 <input 
-                   type="text" 
-                   placeholder="O'quvchi yoki xabarlarni qidirish..." 
-                   className="w-full bg-slate-100/50 dark:bg-white/5 border border-transparent focus:border-indigo-500/30 focus:bg-white dark:focus:bg-card rounded-2xl py-2.5 pl-11 pr-4 text-sm font-medium transition-all outline-none"
-                 />
-              </div>
-           </div>
+         <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-10 shrink-0 z-10 border-b border-slate-100 dark:border-white/5 sticky top-0">
+            <div className="flex-1 max-w-xl">
+               <div ref={searchRef} className="relative z-50">
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <input 
+                      type="text" 
+                      placeholder="O'quvchi yoki xabarlarni qidirish..." 
+                      className="w-full bg-slate-100/50 dark:bg-white/5 border border-transparent focus:border-indigo-500/30 focus:bg-white dark:focus:bg-card rounded-2xl py-2.5 pl-11 pr-4 text-sm font-medium transition-all outline-none"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setIsSearchOpen(true);
+                      }}
+                      onFocus={() => setIsSearchOpen(true)}
+                    />
+                  </div>
+                  
+                  {isSearchOpen && searchQuery.length > 0 && (
+                     <div className="absolute top-14 left-0 w-full bg-white dark:bg-[#141724] border border-slate-100 dark:border-white/5 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-none overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {searchResults.length > 0 ? (
+                           <div className="max-h-[300px] overflow-y-auto p-2 scrollbar-thin">
+                              {searchResults.map(res => (
+                                 <button 
+                                   key={res.id}
+                                   onClick={() => handleSearchSelect(res.path)}
+                                   className="w-full flex items-center gap-4 p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors text-left"
+                                 >
+                                    <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 p-2.5 rounded-xl">
+                                       <res.icon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                       <h4 className="text-[14px] font-black text-slate-900 dark:text-white truncate">{res.title}</h4>
+                                       <p className="text-[12px] font-semibold text-slate-500 truncate">{res.desc}</p>
+                                    </div>
+                                    <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md">{res.type}</span>
+                                 </button>
+                              ))}
+                           </div>
+                        ) : (
+                           <div className="p-8 text-center text-slate-500">
+                              <p className="font-bold text-[14px]">Hech narsa topilmadi</p>
+                              <p className="text-[12px] mt-1">Boshqa so'z bilan izlab ko'ring</p>
+                           </div>
+                        )}
+                     </div>
+                  )}
+               </div>
+            </div>
 
-           <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
                  <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-indigo-500 transition-all relative">
                     <Bell className="w-5 h-5" />

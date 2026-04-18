@@ -47,15 +47,16 @@ export const profileService = {
 
   async getParentChildren(parentId: string) {
     const { data, error } = await supabase
-      .from('parent_student')
+      .from('parent_student_links')
       .select(`
         student_id,
-        profiles!parent_student_student_id_fkey (*)
+        profiles!parent_student_links_student_id_fkey (*)
       `)
       .eq('parent_id', parentId);
     
     if (error) throw error;
-    return data.map(d => d.profiles) as Profile[];
+    // data.map(d => d.profiles) returns any[][], so we take the first element of each inner array
+    return (data || []).map(d => d.profiles?.[0]).filter(Boolean) as Profile[];
   },
 
   async createProfile(profile: Omit<Profile, 'created_at' | 'is_active'>) {
@@ -113,7 +114,7 @@ export const profileService = {
       .from('profiles')
       .select(`
         *,
-        parent_student:parent_student_parent_id_fkey (
+        parent_student_links!parent_student_links_parent_id_fkey (
           student_id
         )
       `)
@@ -124,7 +125,7 @@ export const profileService = {
     
     return profiles.map(p => ({
       ...p,
-      childrenCount: p.parent_student?.length || 0
+      childrenCount: p.parent_student_links?.length || 0
     }));
   }
 };

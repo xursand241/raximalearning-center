@@ -35,8 +35,13 @@ export const useAuthStore = create<AuthState>()(
       login: (userData) => set({ user: userData, isAuthenticated: true, isLoading: false }),
       
       logout: async () => {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } catch (err) {
+          console.error("Supabase signout failed", err);
+        }
         set({ user: null, session: null, isAuthenticated: false, isLoading: false });
+        localStorage.removeItem('raxima-auth-storage');
       },
       
       setSession: (session) => set({ session, isAuthenticated: !!session }),
@@ -45,15 +50,39 @@ export const useAuthStore = create<AuthState>()(
       
       initialize: async () => {
         set({ isLoading: true });
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          set({ session, isAuthenticated: true });
-          // Fetch profile if needed, but for now we'll keep the persisted user if available
-          // In a real app, we'd fetch the latest profile from 'profiles' table here
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
+            // Fetch latest profile
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profile && !error) {
+              set({ 
+                session, 
+                isAuthenticated: true,
+                user: {
+                  id: profile.id,
+                  name: `${profile.first_name} ${profile.last_name}`,
+                  role: profile.role,
+                  email: session.user.email
+                }
+              });
+            } else {
+              set({ session, isAuthenticated: true });
+            }
+          } else {
+            set({ session: null, isAuthenticated: false, user: null });
+          }
+        } catch (err) {
+          console.error("Initialize auth error:", err);
+        } finally {
+          set({ isLoading: false });
         }
-        
-        set({ isLoading: false });
       }
     }),
     {

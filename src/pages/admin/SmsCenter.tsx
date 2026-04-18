@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Smartphone, Send, History, Settings, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Smartphone, Send, History, Settings, CheckCircle2, XCircle, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,6 +11,29 @@ import type { SmsLog } from "@/services/smsService";
 export default function SmsCenter() {
   const [logs, setLogs] = useState<SmsLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNewSmsOpen, setIsNewSmsOpen] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendSms = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phone || !message) return;
+    setIsSending(true);
+    try {
+      await smsService.sendSms(phone, message);
+      setPhone("");
+      setMessage("");
+      setIsNewSmsOpen(false);
+      // Refresh logs
+      const data = await smsService.getLogs();
+      setLogs(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchLogs() {
@@ -40,10 +63,10 @@ export default function SmsCenter() {
            <p className="text-gray-500 font-medium mt-1 text-[15px]">Avtomatlashtirilgan xabarlar va Eskiz API sozlamalari.</p>
         </div>
         <div className="flex items-center gap-3">
-           <Button variant="outline" className="h-11 px-5 border-gray-200 dark:border-white/10 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all">
+           <Button variant="outline" onClick={() => document.getElementById('api-settings')?.scrollIntoView({ behavior: 'smooth' })} className="h-11 px-5 border-gray-200 dark:border-white/10 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all">
              <Settings className="w-4 h-4 mr-2" /> Sozlamalar
            </Button>
-           <Button className="h-11 px-6 bg-[#3e4cf1] hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20">
+           <Button onClick={() => setIsNewSmsOpen(true)} className="h-11 px-6 bg-[#3e4cf1] hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20">
              <Send className="w-4 h-4 mr-2" /> Yangi SMS
            </Button>
         </div>
@@ -126,7 +149,7 @@ export default function SmsCenter() {
             </div>
          </Card>
 
-         <Card className="border-none shadow-sm bg-white dark:bg-[#141724] rounded-[32px] overflow-hidden">
+         <Card id="api-settings" className="border-none shadow-sm bg-white dark:bg-[#141724] rounded-[32px] overflow-hidden">
             <CardHeader className="px-8 py-6 border-b border-gray-50 dark:border-white/5">
                 <CardTitle className="text-[18px] font-black text-[#141724] dark:text-white">API Sozlamalari</CardTitle>
             </CardHeader>
@@ -163,6 +186,49 @@ export default function SmsCenter() {
             </CardContent>
          </Card>
       </div>
+
+      {isNewSmsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="w-full max-w-md border-none shadow-2xl bg-white dark:bg-[#141724] rounded-3xl overflow-hidden scale-in-95 animate-in duration-200">
+            <CardHeader className="px-6 py-5 border-b border-gray-50 dark:border-white/5 flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-black text-[#141724] dark:text-white">Yangi SMS Yuborish</CardTitle>
+              <button type="button" onClick={() => setIsNewSmsOpen(false)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </CardHeader>
+            <form onSubmit={handleSendSms}>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Telefon raqam</label>
+                  <Input 
+                    placeholder="+998 90 123 45 67" 
+                    value={phone} 
+                    onChange={e => setPhone(e.target.value)} 
+                    className="h-12 bg-gray-50 dark:bg-white/5 border-none rounded-xl font-medium text-[#141724] dark:text-white"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Xabar matni</label>
+                  <textarea 
+                    placeholder="Xabar matnini kiriting..." 
+                    value={message} 
+                    onChange={e => setMessage(e.target.value)}
+                    className="w-full h-32 p-3 bg-gray-50 dark:bg-white/5 border-none rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none text-sm font-medium text-[#141724] dark:text-white"
+                    required
+                  />
+                </div>
+              </CardContent>
+              <div className="p-6 pt-0 flex gap-3">
+                <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl dark:border-white/10 dark:hover:bg-white/5" onClick={() => setIsNewSmsOpen(false)}>Bekor qilish</Button>
+                <Button type="submit" disabled={isSending} className="flex-1 h-12 bg-[#3e4cf1] hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 font-bold">
+                  {isSending ? "Yuborilmoqda..." : "Yuborish"}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
