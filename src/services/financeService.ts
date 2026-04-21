@@ -46,12 +46,14 @@ export const financeService = {
     return data;
   },
 
-  async getRevenueStats(timeRange: '30' | '7' | '24') {
-    // In a real app, we'd use a postgres function or complex query
-    // This is a simplified version
+  async getRevenueStats(days: number) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
     const { data, error } = await supabase
       .from('payments')
-      .select('amount_paid, paid_at');
+      .select('amount_paid, paid_at')
+      .gte('paid_at', startDate.toISOString());
     
     if (error) throw error;
     return data;

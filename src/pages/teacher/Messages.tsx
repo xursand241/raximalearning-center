@@ -8,25 +8,7 @@ export default function Messages() {
   
   const [activeChatId, setActiveChatId] = useState(1);
   
-  const [chatData, setChatData] = useState({
-    1: {
-       id: 1,
-       name: "Ota-ona (Sobirovlar)",
-       online: true,
-       messages: [
-         { id: 101, sender: "Ota-ona (Sobirovlar)", text: "Assalomu alaykum ustoz, uy vazifalari qaysi kitobdan edi?", time: "10:45" },
-         { id: 102, sender: "Siz", text: "Vaalaykum assalom. Vocabulary kitobining 4-unit qaytarilgach, ish daftardan mashqlar.", time: "11:20" },
-       ]
-    },
-    2: {
-       id: 2,
-       name: "Ma'muriyat",
-       online: false,
-       messages: [
-         { id: 201, sender: "Ma'muriyat", text: "Ustoz, ertangi darslar jadvalida o'zgarish bor. Iltimos tekshiring.", time: "Kecha 14:15" },
-       ]
-    }
-  });
+  const [chatData, setChatData] = useState<any>({});
 
   const activeChat = chatData[activeChatId as keyof typeof chatData];
 
@@ -35,8 +17,10 @@ export default function Messages() {
   }
 
   useEffect(() => {
-    scrollToBottom();
-  }, [activeChat.messages]);
+    if (activeChat) {
+      scrollToBottom();
+    }
+  }, [activeChat?.messages]);
 
   const handleSend = () => {
     if(!message.trim()) return;

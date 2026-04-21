@@ -184,11 +184,11 @@ export default function ParentsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Ism *</label>
-                  <Input required value={newParent.firstName} onChange={(e) => setNewParent({...newParent, firstName: e.target.value})} placeholder="Masalan: Anvarjon" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                  <Input required value={newParent.firstName} onChange={(e) => setNewParent({...newParent, firstName: e.target.value})} placeholder="Ismini kiriting" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Familiya *</label>
-                  <Input required value={newParent.lastName} onChange={(e) => setNewParent({...newParent, lastName: e.target.value})} placeholder="Masalan: Xoliqov" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                  <Input required value={newParent.lastName} onChange={(e) => setNewParent({...newParent, lastName: e.target.value})} placeholder="Familiyasini kiriting" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
                 </div>
               </div>
               <div className="space-y-1.5">

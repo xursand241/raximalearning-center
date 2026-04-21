@@ -29,10 +29,10 @@ export default function StudentsPage() {
         id: s.id.slice(0, 8).toUpperCase(),
         dbId: s.id,
         name: `${s.first_name} ${s.last_name}`,
-        group: s.student_groups?.[0]?.groups?.name || "Guruhsiz",
+        group: s.enrollments?.[0]?.groups?.name || "Guruhsiz",
         phone: s.phone || "Kiritilmagan",
         status: s.is_active ? "Active" : "Blocked",
-        paid: true // Will be connected to finance later
+        paid: s.enrollments?.[0]?.payment_status === 'paid'
       })));
     } catch (err) {
       console.error("Error fetching students:", err);

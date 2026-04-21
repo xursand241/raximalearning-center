@@ -45,7 +45,7 @@ export default function GroupsPage() {
           id: g.id,
           name: g.name,
           teacher: g.profiles ? `${g.profiles.first_name} ${g.profiles.last_name}` : "Tayinlanmagan",
-          schedule: "Du-Chor-Ju (18:00)", // Mock for now until schedule module is complete
+          schedule: g.schedule_json?.formatted || "Belgilanmagan", // Using real schedule if exists
           room: g.room,
           students: studentList.length,
           capacity: 20,

@@ -1,18 +1,47 @@
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, MapPin, Users, Calendar, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, MapPin, Users, Calendar, ArrowRight, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { groupService } from "@/services/groupService";
 
 export default function SchedulePage() {
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [groups, setGroups] = useState<any[]>([]);
 
-  const groups = [
-    { id: 1, name: "IELTS B2", teacher: "Javohir Qosimov", subject: "Ingliz tili", students: 14, days: ["Dushanba", "Chorshanba", "Juma"], time: "14:00 - 16:00", room: "Xona-12", color: "from-blue-500 to-cyan-500" },
-    { id: 2, name: "Math Advanced", teacher: "Aziz Rakhimov", subject: "Matematika", students: 10, days: ["Seshanba", "Payshanba", "Shanba"], time: "16:00 - 18:00", room: "Xona-04", color: "from-emerald-400 to-teal-500" },
-    { id: 3, name: "IT Foundation", teacher: "Sanjar Bekmurodov", subject: "Dasturlash", students: 12, days: ["Dushanba", "Juma"], time: "18:00 - 20:00", room: "Xona-01", color: "from-rose-400 to-red-500" },
-    { id: 4, name: "Ona tili", teacher: "Shahnoza Aliyeva", subject: "Gumanitar", students: 18, days: ["Chorshanba", "Shanba"], time: "08:00 - 10:00", room: "Xona-08", color: "from-amber-400 to-orange-500" },
-    { id: 5, name: "Biologiya", teacher: "Malika Tohirova", subject: "Tabiiy fanlar", students: 15, days: ["Seshanba", "Payshanba"], time: "14:00 - 15:30", room: "Xona-03", color: "from-indigo-500 to-purple-500" },
-  ];
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const fetchGroups = async () => {
+    setIsLoading(true);
+    try {
+      const data = await groupService.getAllGroups();
+      setGroups(data.map((g: any, idx: number) => ({
+        id: g.id,
+        name: g.name,
+        subject: g.subjects?.name || "Fan",
+        teacher: g.profiles ? `${g.profiles.first_name} ${g.profiles.last_name}` : "Tayinlanmagan",
+        students: 0, // This could be fetched via groupService.getGroupStudents count
+        room: g.room || "Noma'lum",
+        time: g.schedule_json?.time || "14:00 - 16:00",
+        days: g.schedule_json?.days || ["Dushanba", "Chorshanba", "Juma"],
+        color: ["from-blue-500 to-indigo-600", "from-emerald-500 to-teal-600", "from-rose-500 to-pink-600", "from-amber-500 to-orange-600"][idx % 4]
+      })));
+    } catch (err) {
+      console.error("Error fetching schedules:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3e4cf1]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6 min-h-screen">
@@ -25,7 +54,7 @@ export default function SchedulePage() {
           </div>
           <div className="flex items-center gap-2 bg-white dark:bg-[#141724] p-1 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
             <button className="p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors text-gray-500"><ChevronLeft className="w-5 h-5"/></button>
-            <span className="px-4 font-bold text-[14px]">Oktyabr, 2026</span>
+            <span className="px-4 font-bold text-[14px]">{new Date().toLocaleString('uz-UZ', { month: 'long', year: 'numeric' })}</span>
             <button className="p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors text-gray-500"><ChevronRight className="w-5 h-5"/></button>
           </div>
         </div>
@@ -34,7 +63,7 @@ export default function SchedulePage() {
       {/* State 1: List of Groups */}
       {!selectedGroup && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {groups.map(g => (
+          {groups.length > 0 ? groups.map(g => (
              <Card 
                 key={g.id} 
                 onClick={() => setSelectedGroup(g)} 
@@ -62,7 +91,11 @@ export default function SchedulePage() {
                    </div>
                 </div>
              </Card>
-          ))}
+          )) : (
+             <div className="col-span-full py-20 text-center text-gray-500 font-bold border-2 border-dashed border-gray-100 dark:border-white/5 rounded-3xl">
+                Hozircha hech qanday guruh yaratilmagan.
+             </div>
+          )}
         </div>
       )}
 

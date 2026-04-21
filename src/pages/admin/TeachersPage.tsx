@@ -28,10 +28,10 @@ export default function TeachersPage() {
         firstName: t.first_name,
         lastName: t.last_name,
         phone: t.phone || "Kiritilmagan",
-        subjects: ["Pedagog"], // Default for now
+        subjects: ["Dars berish"], // In schema groups join provides subject info
         groupsCount: t.groupsCount,
         studentsCount: t.studentsCount,
-        rating: 5.0,
+        rating: "N/A",
         status: t.is_active ? "Aktiv" : "Noaktiv"
       })));
     } catch (err) {
@@ -75,7 +75,7 @@ export default function TeachersPage() {
   const total = teachers.length;
   const active = teachers.filter(t => t.status === 'Aktiv').length;
   const activeGroups = teachers.reduce((acc, curr) => acc + curr.groupsCount, 0);
-  const avgRating = total > 0 ? (teachers.reduce((acc, curr) => acc + curr.rating, 0) / total).toFixed(1) : "0.0";
+  const avgRating = "N/A";
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
@@ -192,7 +192,7 @@ export default function TeachersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                      <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 dark:bg-amber-500/10 rounded-lg w-fit">
                         <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                        <span className="text-[13px] font-black text-amber-600 dark:text-amber-500">{teacher.rating}</span>
+                        <span className="text-[13px] font-black text-amber-600 dark:text-amber-500">{teacher.rating || "0.0"}</span>
                      </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { financeService } from "@/services/financeService";
 import { profileService } from "@/services/profileService";
 
-const MOCK_API_DELAY = 600;
 
 export default function DashboardOverview() {
   const [timeRange, setTimeRange] = useState<"30" | "7" | "24">("30");
   const [isLoading, setIsLoading] = useState(true);
   const [liveStats, setLiveStats] = useState<any[]>([]);
   const [liveTransactions, setLiveTransactions] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<number[]>([]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -36,14 +36,36 @@ export default function DashboardOverview() {
           trend: 'up'
         })));
 
+        const allGroups = await groupService.getAllGroups();
+
         const formattedRevenue = totalRevenue >= 1000000 ? (totalRevenue / 1000000).toFixed(1) + "M" : (totalRevenue / 1000).toFixed(0) + "K";
 
         setLiveStats([
-          { label: "Jami O'quvchilar", value: students.length.toString(), trend: "+12%", trendUp: true, icon: Users, color: "from-blue-500 to-indigo-600", bgBase: "bg-blue-50 dark:bg-blue-500/10", textBase: "text-blue-600 dark:text-blue-400" },
-          { label: "Jami Tushum", value: formattedRevenue + " UZS", trend: "+24%", trendUp: true, icon: Wallet, color: "from-emerald-400 to-teal-500", bgBase: "bg-emerald-50 dark:bg-emerald-500/10", textBase: "text-emerald-600 dark:text-emerald-400" },
-          { label: "Yangi Qabul", value: students.filter(s => new Date(s.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length.toString(), trend: "+5%", trendUp: true, icon: UserPlus, color: "from-violet-500 to-purple-600", bgBase: "bg-violet-50 dark:bg-violet-500/10", textBase: "text-violet-600 dark:text-violet-400" },
-          { label: "Faol Guruhlar", value: "12", trend: "Barqaror", trendUp: true, icon: Activity, color: "from-amber-400 to-orange-500", bgBase: "bg-amber-50 dark:bg-amber-500/10", textBase: "text-amber-600 dark:text-amber-400" },
+          { label: "Jami O'quvchilar", value: students.length.toString(), trend: "0%", trendUp: true, icon: Users, color: "from-blue-500 to-indigo-600", bgBase: "bg-blue-50 dark:bg-blue-500/10", textBase: "text-blue-600 dark:text-blue-400" },
+          { label: "Jami Tushum", value: formattedRevenue + " UZS", trend: "0%", trendUp: true, icon: Wallet, color: "from-emerald-400 to-teal-500", bgBase: "bg-emerald-50 dark:bg-emerald-500/10", textBase: "text-emerald-600 dark:text-emerald-400" },
+          { label: "Yangi Qabul", value: students.filter(s => new Date(s.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length.toString(), trend: "0%", trendUp: true, icon: UserPlus, color: "from-violet-500 to-purple-600", bgBase: "bg-violet-50 dark:bg-violet-500/10", textBase: "text-violet-600 dark:text-violet-400" },
+          { label: "Faol Guruhlar", value: (allGroups.length).toString(), trend: "Barqaror", trendUp: true, icon: Activity, color: "from-amber-400 to-orange-500", bgBase: "bg-amber-50 dark:bg-amber-500/10", textBase: "text-amber-600 dark:text-amber-400" },
         ]);
+
+        // Process Chart Data
+        const days = timeRange === "30" ? 30 : timeRange === "7" ? 7 : 1;
+        const rawRevenue = await financeService.getRevenueStats(days);
+        
+        const segments = timeRange === "30" ? 12 : timeRange === "7" ? 7 : 24;
+        const bins = Array(segments).fill(0);
+        const now = Date.now();
+        const segmentMs = (days * 24 * 60 * 60 * 1000) / segments;
+
+        rawRevenue.forEach((p: any) => {
+          const pTime = new Date(p.paid_at).getTime();
+          const binIdx = Math.floor((now - pTime) / segmentMs);
+          if (binIdx >= 0 && binIdx < segments) {
+            bins[segments - 1 - binIdx] += p.amount_paid;
+          }
+        });
+
+        const maxVal = Math.max(...bins, 1);
+        setChartData(bins.map(b => (b / maxVal) * 100));
 
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -56,30 +78,25 @@ export default function DashboardOverview() {
 
   const dataMap = {
     "30": {
-      chart: [40, 70, 45, 90, 60, 100, 80, 50, 75, 40, 85, 95],
       label: "o'tgan 30 kunga nisbatan"
     },
     "7": {
-      chart: [60, 45, 80, 50, 70, 85, 95],
       label: "o'tgan 7 kunga nisbatan"
     },
     "24": {
-      chart: [10, 20, 15, 30, 25, 45, 40, 60, 55, 70, 65, 80, 75, 90, 85, 100, 95, 80, 75, 60, 55, 40, 35, 20],
       label: "kechagiga nisbatan"
     }
   };
 
-  const { chart, label } = dataMap[timeRange];
+  const { label } = dataMap[timeRange];
+  const chart = chartData.length > 0 ? chartData : Array(timeRange === "30" ? 12 : timeRange === "7" ? 7 : 24).fill(0);
   const stats = liveStats.length > 0 ? liveStats : [
      { label: "Jami O'quvchilar", value: "...", trend: "...", trendUp: true, icon: Users, color: "from-blue-500 to-indigo-600", bgBase: "bg-blue-50 dark:bg-blue-500/10", textBase: "text-blue-600 dark:text-blue-400" },
      { label: "Oylik Sof Tushum", value: "...", trend: "...", trendUp: true, icon: Wallet, color: "from-emerald-400 to-teal-500", bgBase: "bg-emerald-50 dark:bg-emerald-500/10", textBase: "text-emerald-600 dark:text-emerald-400" },
      { label: "Yangi Qabul", value: "...", trend: "...", trendUp: true, icon: UserPlus, color: "from-violet-500 to-purple-600", bgBase: "bg-violet-50 dark:bg-violet-500/10", textBase: "text-violet-600 dark:text-violet-400" },
-     { label: "Kutilayotgan Qarzlar", value: "...", trend: "...", trendUp: false, icon: Clock, color: "from-rose-400 to-red-500", bgBase: "bg-rose-50 dark:bg-rose-500/10", textBase: "text-rose-600 dark:text-rose-400" },
+     { label: "Faol Guruhlar", value: "...", trend: "...", trendUp: false, icon: Activity, color: "from-amber-400 to-orange-500", bgBase: "bg-amber-50 dark:bg-amber-500/10", textBase: "text-amber-600 dark:text-amber-400" },
   ];
-  const transactions = liveTransactions.length > 0 ? liveTransactions : [
-    { id: 1, name: "Azizov Timur", type: "Naqd pul", amount: "$150", status: "Tasdiqlangan", date: "Bugun, 10:45", trend: 'up' },
-    { id: 2, name: "Malikova Iroda", type: "Payme", amount: "$150", status: "Kutilmoqda", date: "Bugun, 09:30", trend: 'pending' },
-  ];
+  const transactions = liveTransactions;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8 pb-12 max-w-[1600px] mx-auto">

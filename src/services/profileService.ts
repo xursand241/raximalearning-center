@@ -75,7 +75,7 @@ export const profileService = {
       .from('profiles')
       .select(`
         *,
-        student_groups (
+        enrollments (
           group_id,
           groups (name)
         )
@@ -94,7 +94,7 @@ export const profileService = {
         *,
         groups (
           id,
-          student_groups (count)
+          enrollments (count)
         )
       `)
       .eq('role', 'teacher')
@@ -105,7 +105,7 @@ export const profileService = {
     return profiles.map(p => ({
       ...p,
       groupsCount: p.groups?.length || 0,
-      studentsCount: p.groups?.reduce((acc: number, g: any) => acc + (g.student_groups?.[0]?.count || 0), 0) || 0
+      studentsCount: p.groups?.reduce((acc: number, g: any) => acc + (g.enrollments ? g.enrollments[0]?.count || 0 : 0), 0) || 0
     }));
   },
 
@@ -114,7 +114,7 @@ export const profileService = {
       .from('profiles')
       .select(`
         *,
-        parent_student_links!parent_student_links_parent_id_fkey (
+        parent_student_links!parent_id (
           student_id
         )
       `)

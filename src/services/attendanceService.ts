@@ -16,7 +16,12 @@ export const attendanceService = {
       .upsert(records, { onConflict: 'student_id,group_id,date' })
       .select();
     
-    if (error) throw error;
+    if (error) {
+      if (error.code === '23505' || error.message.includes('unique constraint')) {
+        throw new Error("Davomatni qayta belgilash jadvalida muammo chiqdi. Iltimos, bazadagi unique constraint sozlamalarini tekshiring.");
+      }
+      throw error;
+    }
     return data;
   },
 
@@ -44,6 +49,21 @@ export const attendanceService = {
       .eq('student_id', student_id)
       .order('date', { ascending: false });
 
+    if (error) throw error;
+    return data;
+  },
+
+  async getAllAttendanceForDate(date: string) {
+    const { data, error } = await supabase
+      .from('attendance')
+      .select(`
+        *,
+        profiles:student_id (first_name, last_name),
+        groups (name)
+      `)
+      .eq('date', date)
+      .order('marked_at', { ascending: false });
+    
     if (error) throw error;
     return data;
   }

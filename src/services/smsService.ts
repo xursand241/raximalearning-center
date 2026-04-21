@@ -24,11 +24,19 @@ export const smsService = {
   async logSms(log: Omit<SmsLog, 'id' | 'created_at'>) {
     const { data, error } = await supabase
       .from('sms_logs')
-      .insert(log)
+      .insert({
+        student_id: log.student_id,
+        recipient_phone: log.phone, // Map phone to recipient_phone as per schema.sql
+        message: log.message,
+        status: log.status
+      })
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error("SMS Log error:", error);
+      throw error;
+    }
     return data as SmsLog;
   },
 

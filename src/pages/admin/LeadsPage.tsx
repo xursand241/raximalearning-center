@@ -21,13 +21,7 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   
   // State for dynamic leads
-  const [leads, setLeads] = useState<Lead[]>([
-    { id: "LD-001", name: "Shahzod Qodirov", phone: "+998 90 111 22 33", course: "IT Foundation", source: "Instagram", status: "Yangi", date: "Bugun, 09:15" },
-    { id: "LD-002", name: "Nargiza Aliyeva", phone: "+998 93 444 55 66", course: "IELTS B2", source: "Telegram", status: "Aloqaga chiqildi", date: "Bugun, 10:30" },
-    { id: "LD-003", name: "Doston Yo'ldoshev", phone: "+998 94 777 88 99", course: "Matematika", source: "Do'sti tavsiyasi", status: "O'ylab ko'radi", date: "Kecha, 16:45" },
-    { id: "LD-004", name: "Madina To'rayeva", phone: "+998 97 222 33 44", course: "Ingliz tili (Kids)", source: "Facebook", status: "Qabul qilindi", date: "12 Aprel" },
-    { id: "LD-005", name: "Azamat Ibrohimov", phone: "+998 99 555 66 77", course: "Rus tili", source: "Instagram", status: "Rad etildi", date: "11 Aprel" },
-  ]);
+  const [leads, setLeads] = useState<Lead[]>([]);
 
   const updateLeadStatus = (id: string, newStatus: LeadStatus) => {
     setLeads(leads.map(lead => lead.id === id ? { ...lead, status: newStatus } : lead));

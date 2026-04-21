@@ -4,10 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Assessments() {
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Unit 5 Reading Task", type: "Homework", group: "IELTS B2", deadline: "Ertaga, 23:59" },
-    { id: 2, title: "Mock Exam #1", type: "Exam", group: "Foundation", deadline: "10 May, 15:00" },
-  ]);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
 

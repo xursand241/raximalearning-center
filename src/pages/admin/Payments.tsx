@@ -105,7 +105,7 @@ export default function PaymentsPage() {
     .filter(tx => tx.status === 'Tasdiqlangan')
     .reduce((acc, curr) => acc + Number(curr.amount.replace(/[^0-9]/g, '')), 0);
   
-  const displayRevenueNum = totalRevenueNum + 42000000; // Baseline
+  const displayRevenueNum = totalRevenueNum; // Removed baseline
   const formattedRevenue = displayRevenueNum >= 1000000 ? (displayRevenueNum / 1000000).toFixed(1) + "M" : displayRevenueNum.toLocaleString();
 
   return (
@@ -162,7 +162,7 @@ export default function PaymentsPage() {
                   <div>
                     <h3 className="text-[14px] font-bold text-gray-400 dark:text-gray-500 tracking-wide">KUTILAYOTGAN TUSHUM</h3>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-[32px] font-black text-[#141724] dark:text-white tracking-tight">18.2M</span>
+                      <span className="text-[32px] font-black text-[#141724] dark:text-white tracking-tight">0</span>
                       <span className="text-sm font-bold text-gray-400">UZS</span>
                     </div>
                   </div>
@@ -171,11 +171,11 @@ export default function PaymentsPage() {
                   </div>
                </div>
                <div className="w-full bg-gray-100 dark:bg-white/5 h-2 rounded-full overflow-hidden mt-6">
-                  <div className="bg-[#3e4cf1] h-full rounded-full" style={{ width: '70%' }}></div>
+                  <div className="bg-[#3e4cf1] h-full rounded-full" style={{ width: '0%' }}></div>
                </div>
                <div className="mt-2 text-[12px] font-bold text-gray-500 flex justify-between">
-                  <span>Planga nisbatan: 70%</span>
-                  <span className="text-[#3e4cf1]">60M Topshiriq</span>
+                  <span>Planga nisbatan: 0%</span>
+                  <span className="text-[#3e4cf1]">---</span>
                </div>
             </div>
          </Card>
@@ -186,7 +186,7 @@ export default function PaymentsPage() {
                   <div>
                     <h3 className="text-[14px] font-bold text-rose-100 tracking-wide uppercase">Kritik Qarzdorlik</h3>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-[32px] font-black tracking-tight drop-shadow-sm">8.4M</span>
+                      <span className="text-[32px] font-black tracking-tight drop-shadow-sm">0.0</span>
                       <span className="text-sm font-bold text-rose-200">UZS</span>
                     </div>
                   </div>
@@ -197,12 +197,12 @@ export default function PaymentsPage() {
                <div className="mt-5 pt-4 border-t border-white/20 flex gap-4">
                   <div className="flex flex-col">
                      <span className="text-[11px] text-rose-200 font-semibold uppercase">O'quvchilar</span>
-                     <span className="text-lg font-bold">42 ta</span>
+                     <span className="text-lg font-bold">0 ta</span>
                   </div>
                   <div className="flex flex-col border-l border-white/20 pl-4">
                      <span className="text-[11px] text-rose-200 font-semibold uppercase">Status</span>
                      <span className="text-[13px] font-bold flex items-center gap-1 mt-1 bg-white/20 px-2 py-0.5 rounded-md text-white">
-                        <ArrowUpRight className="w-3 h-3" /> O'smoqda
+                        <ArrowUpRight className="w-3 h-3" /> Barqaror
                      </span>
                   </div>
                </div>

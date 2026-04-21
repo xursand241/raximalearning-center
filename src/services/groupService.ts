@@ -55,7 +55,7 @@ export const groupService = {
 
   async enrollStudent(student_id: string, group_id: string) {
     const { data, error } = await supabase
-      .from('student_groups')
+      .from('enrollments')
       .insert({ student_id, group_id })
       .select()
       .single();
@@ -66,7 +66,7 @@ export const groupService = {
 
   async getGroupStudents(group_id: string) {
     const { data, error } = await supabase
-      .from('student_groups')
+      .from('enrollments')
       .select(`
         student_id,
         profiles!student_id (id, first_name, last_name, phone)
@@ -79,7 +79,7 @@ export const groupService = {
 
   async getStudentGroups(student_id: string) {
     const { data, error } = await supabase
-      .from('student_groups')
+      .from('enrollments')
       .select(`
         group_id,
         groups (

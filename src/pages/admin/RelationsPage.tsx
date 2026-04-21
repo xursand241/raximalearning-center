@@ -10,28 +10,7 @@ export default function RelationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRelation, setNewRelation] = useState({ parentName: "", parentPhone: "", childName: "", childGroup: "" });
 
-  const [relations, setRelations] = useState([
-    { 
-      id: "REL-001", 
-      parent: { name: "Anvarjon Xoliqov", phone: "+998 90 123 45 67" }, 
-      children: [{ name: "Azizov Timur", group: "IELTS B2" }] 
-    },
-    { 
-      id: "REL-002", 
-      parent: { name: "Gulzoda Alimova", phone: "+998 93 987 65 43" }, 
-      children: [{ name: "Malikova Iroda", group: "Math Advanced" }, { name: "Malikov Doston", group: "Kids English" }] 
-    },
-    { 
-      id: "REL-003", 
-      parent: { name: "Rustam Karimov", phone: "+998 94 321 76 54" }, 
-      children: [{ name: "Karimov Sardor", group: "English B1" }] 
-    },
-    { 
-      id: "REL-004", 
-      parent: { name: "Nigora Usmanova", phone: "+998 97 111 22 33" }, 
-      children: [{ name: "Usmonova Laylo", group: "Foundation" }, { name: "Usmonov Behzod", group: "IT Kids" }, { name: "Usmonova Asal", group: "Mental Arithmetics" }] 
-    },
-  ]);
+  const [relations, setRelations] = useState<any[]>([]);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +83,7 @@ export default function RelationsPage() {
                </div>
                <div>
                   <h3 className="text-[13px] font-bold text-rose-500 tracking-wider uppercase mb-1">Bog'lanmagan O'quvchilar</h3>
-                  <p className="text-[28px] font-black text-rose-700 dark:text-rose-400 leading-none">12</p>
+                  <p className="text-[28px] font-black text-rose-700 dark:text-rose-400 leading-none">0</p>
                </div>
             </div>
          </Card>
@@ -212,7 +191,7 @@ export default function RelationsPage() {
                  <h3 className="text-sm font-black text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-white/5 pb-2">Ota-ona ma'lumotlari</h3>
                  <div className="space-y-1.5">
                    <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Ism va familiyasi *</label>
-                   <Input required value={newRelation.parentName} onChange={(e) => setNewRelation({...newRelation, parentName: e.target.value})} placeholder="Masalan: Anvarjon Xoliqov" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                   <Input required value={newRelation.parentName} onChange={(e) => setNewRelation({...newRelation, parentName: e.target.value})} placeholder="Ism va familiyani kiriting..." className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
                  </div>
                  <div className="space-y-1.5">
                    <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Telefon raqami *</label>
@@ -225,7 +204,7 @@ export default function RelationsPage() {
                  <h3 className="text-sm font-black text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-white/5 pb-2">O'quvchi ma'lumotlari</h3>
                  <div className="space-y-1.5">
                    <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Farzand ism va familiyasi *</label>
-                   <Input required value={newRelation.childName} onChange={(e) => setNewRelation({...newRelation, childName: e.target.value})} placeholder="Masalan: Azizov Timur" className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
+                   <Input required value={newRelation.childName} onChange={(e) => setNewRelation({...newRelation, childName: e.target.value})} placeholder="O'quvchi ism va familiyasini kiriting..." className="h-11 bg-white dark:bg-[#0b0e14] border-gray-200 dark:border-white/10 focus-visible:ring-[#3e4cf1]" />
                  </div>
                  <div className="space-y-1.5">
                    <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">O'qiyotgan guruhi (Ixtiyoriy)</label>

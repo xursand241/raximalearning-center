@@ -3,18 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Search, Send, Paperclip, CheckCheck } from "lucide-react";
 
 export default function ParentMessages() {
-  const [contacts] = useState([
-    { id: 1, name: "Aliyeva Nargiza", role: "Ingliz tili o'qituvchisi", unread: 2, time: "14:20", online: true },
-    { id: 2, name: "Qosimov Rustam", role: "Matematika o'qituvchisi", unread: 0, time: "Kecha", online: false },
-    { id: 3, name: "Adminstration", role: "Markaz ma'muriyati", unread: 0, time: "O'tgan hafta", online: true },
-  ]);
-  const [activeContact, setActiveContact] = useState(contacts[0]);
+  const [contacts] = useState<any[]>([]);
+  const [activeContact, setActiveContact] = useState<any>(null);
   
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Assalomu alaykum. Timur bugun uy vazifalarini to'liq bajarib kelibdi, barakalla!", sender: 'teacher', time: "14:15" },
-    { id: 2, text: "Assalomu alaykum! Katta rahmat, nazorat qilib boramiz.", sender: 'me', time: "14:18" },
-    { id: 3, text: "Sizga uning yangi chorak natijalarini yuborayapman, bemalol tanishib chiqishingiz mumkin.", sender: 'teacher', time: "14:20" },
-  ]);
+  const [messages, setMessages] = useState<any[]>([]);
   
   const [newMessage, setNewMessage] = useState("");
 

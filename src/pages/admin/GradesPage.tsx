@@ -12,19 +12,9 @@ export default function GradesPage() {
   const [newGroup, setNewGroup] = useState("");
   const [newDate, setNewDate] = useState("");
 
-  const [exams, setExams] = useState([
-    { id: "EX-101", title: "Oylik Test (Mart)", group: "IELTS Foundation", date: "24 Mart, 2026", avgScore: 78, students: 18 },
-    { id: "EX-102", title: "Mock Exam #4", group: "IELTS B2", date: "20 Mart, 2026", avgScore: 6.5, students: 25 },
-    { id: "EX-103", title: "Oral Test", group: "Kids Math", date: "15 Mart, 2026", avgScore: 85, students: 12 },
-  ]);
+  const [exams, setExams] = useState<any[]>([]);
 
-  const studentGrades = [
-    { id: "ST-001", name: "Azizov Timur", group: "IELTS B2", exam: "Mock Exam #4", score: "7.0", maxScore: "9.0", status: "A'lo", trend: "up" },
-    { id: "ST-002", name: "Malikova Iroda", group: "Ona Tili B1", exam: "Blok test", score: "88", maxScore: "100", status: "Yaxshi", trend: "up" },
-    { id: "ST-003", name: "Karimov Sardor", group: "Math Advanced", exam: "Oylik Test", score: "45", maxScore: "100", status: "Qoniqarsiz", trend: "down" },
-    { id: "ST-004", name: "Usmonova Laylo", group: "Python 02", exam: "Loyiha ishi", score: "95", maxScore: "100", status: "A'lo", trend: "up" },
-    { id: "ST-005", name: "Alimov Jasur", group: "IELTS Foundation", exam: "Listening Test", score: "4.5", maxScore: "9.0", status: "Qoniqarsiz", trend: "down" },
-  ];
+  const studentGrades: any[] = [];
 
   const handleSort = () => {
     if (sortBy === "none") setSortBy("desc");
@@ -79,22 +69,22 @@ export default function GradesPage() {
       <div className="grid gap-5 md:grid-cols-3">
          <Card className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none bg-gradient-to-br from-[#3e4cf1] to-[#3442d9] rounded-2xl overflow-hidden relative group text-white p-6">
             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Star className="w-20 h-20"/></div>
-            <p className="text-[14px] font-bold text-blue-200 tracking-wider uppercase mb-1">A'lochi O'quvchilar</p>
+            <p className="text-[14px] font-bold text-blue-100 tracking-wider uppercase mb-1">A'lochi O'quvchilar</p>
             <div className="flex items-end gap-2 mt-2">
-               <p className="text-[36px] font-black leading-none">124</p>
-               <span className="text-blue-200 font-bold mb-1">ta (15%)</span>
+               <p className="text-[36px] font-black leading-none">0</p>
+               <span className="text-blue-200 font-bold mb-1">ta (0%)</span>
             </div>
             <div className="mt-4 inline-flex items-center gap-1 text-[12px] font-extrabold bg-white/20 px-2.5 py-1 rounded-md">
-               <TrendingUp className="w-3.5 h-3.5" /> O'tgan oyga nisbatan o'sish
+               <TrendingUp className="w-3.5 h-3.5" /> Barqaror
             </div>
          </Card>
 
          <Card className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none bg-white dark:bg-[#141724] rounded-2xl overflow-hidden relative group p-6">
             <div className="flex justify-between items-start">
                <div>
-                  <p className="text-[14px] font-bold text-gray-400 tracking-wider uppercase mb-1">O'rtacha Max Reyting</p>
+                  <p className="text-[14px] font-bold text-gray-400 tracking-wider uppercase mb-1">O'rtacha Reyting</p>
                   <div className="flex items-end gap-2 mt-2">
-                     <p className="text-[36px] font-black text-[#141724] dark:text-white leading-none">82.5</p>
+                     <p className="text-[36px] font-black text-[#141724] dark:text-white leading-none">0.0</p>
                      <span className="text-gray-400 font-bold mb-1">/ 100</span>
                   </div>
                </div>
@@ -109,16 +99,16 @@ export default function GradesPage() {
                <div>
                   <p className="text-[14px] font-bold text-gray-400 tracking-wider uppercase mb-1 drop-shadow-sm">Xavf Ostidagi</p>
                   <div className="flex items-end gap-2 mt-2">
-                     <p className="text-[36px] font-black text-rose-500 leading-none">18</p>
+                     <p className="text-[36px] font-black text-rose-500 leading-none">0</p>
                      <span className="text-gray-400 font-bold mb-1">ta o'quvchi</span>
                   </div>
                </div>
-               <div className="w-12 h-12 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-xl flex items-center justify-center animate-pulse">
+               <div className="w-12 h-12 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-xl flex items-center justify-center">
                   <AlertTriangle className="w-6 h-6" strokeWidth={2.5} />
                </div>
             </div>
             <p className="text-[12px] font-bold text-gray-400 mt-4">
-               So'nggi testda o'tish balini to'play olmaganlar
+               Ma'lumot yo'q
             </p>
          </Card>
       </div>

@@ -1,34 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, Clock, Calendar, Search, Users, Download, Zap, X, UserX, FileText, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { attendanceService } from "@/services/attendanceService";
+import { profileService } from "@/services/profileService";
 
 export default function AttendancePage() {
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [totalStudentsCount, setTotalStudentsCount] = useState(0);
 
-  // Unified mocked data based on the date
-  // In a real app, this would be fetched when `selectedDate` changes
-  const attendanceRecords = [
-    { id: 1, date: new Date().toISOString().split('T')[0], student: "Azizov Timur", group: "IELTS Foundation", status: "present" },
-    { id: 2, date: new Date().toISOString().split('T')[0], student: "Malikova Iroda", group: "IELTS Foundation", status: "absent" },
-    { id: 3, date: new Date().toISOString().split('T')[0], student: "Karimov Sardor", group: "Math Advanced", status: "excused" },
-    { id: 4, date: new Date().toISOString().split('T')[0], student: "Usmonova Laylo", group: "Math Advanced", status: "late" },
-    { id: 5, date: "2026-04-10", student: "Rakhimov Jasur", group: "IT Bootcamp", status: "present" },
-    { id: 6, date: "2026-04-10", student: "Aliyeva Shahnoza", group: "IT Bootcamp", status: "present" },
-  ];
+  useEffect(() => {
+    fetchAttendance();
+    fetchTotalStudents();
+  }, [selectedDate]);
 
-  // Filter records by selected date and search term
+  const fetchAttendance = async () => {
+    setIsLoading(true);
+    try {
+      const data = await attendanceService.getAllAttendanceForDate(selectedDate);
+      setAttendanceRecords(data.map((r: any) => ({
+        id: r.id,
+        date: r.date,
+        student: `${r.profiles?.first_name} ${r.profiles?.last_name}`,
+        group: r.groups?.name || "Noma'lum",
+        status: r.status
+      })));
+    } catch (err) {
+      console.error("Error fetching attendance:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchTotalStudents = async () => {
+    try {
+      const students = await profileService.getAllProfilesByRole('student');
+      setTotalStudentsCount(students.length);
+    } catch (err) {
+      console.error("Error fetching students count:", err);
+    }
+  };
+
+  // Filter records by search term
   const filteredRecords = attendanceRecords.filter(item => {
-     const matchesDate = item.date === selectedDate;
-     const matchesSearch = item.student.toLowerCase().includes(search.toLowerCase()) || item.group.toLowerCase().includes(search.toLowerCase());
-     return matchesDate && matchesSearch;
+     return item.student.toLowerCase().includes(search.toLowerCase()) || item.group.toLowerCase().includes(search.toLowerCase());
   });
 
   // Calculate KPIs
-  const totalStudentsStr = "120"; // Mock total capacity if needed, or derived from data
   const totalStudents = filteredRecords.length;
   const presentCount = filteredRecords.filter(r => r.status === 'present').length;
   const absentCount = filteredRecords.filter(r => r.status === 'absent').length;
@@ -96,7 +119,7 @@ export default function AttendancePage() {
                   <Users className="w-4 h-4" />
                </div>
             </div>
-            <h3 className="text-3xl font-black text-[#141724] dark:text-white relative">{totalStudentsStr}</h3>
+            <h3 className="text-3xl font-black text-[#141724] dark:text-white relative">{totalStudentsCount}</h3>
          </Card>
 
          <Card className="p-5 border-none shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none bg-white dark:bg-[#141724] rounded-2xl relative overflow-hidden group">

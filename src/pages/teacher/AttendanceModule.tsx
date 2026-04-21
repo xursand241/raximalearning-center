@@ -93,15 +93,19 @@ export default function AttendanceModule() {
     try {
       await attendanceService.markAttendance(records as any);
       
-      // Trigger SMS for absent students
+      // Trigger SMS for absent students (Non-blocking)
       const absentStudents = roster.filter(s => s.status === 'absent');
       for (const student of absentStudents) {
-        await smsService.logSms({
-          student_id: student.id,
-          phone: student.phone || "998900000000",
-          message: `Hurmatli ota-ona, farzandingiz ${student.name} bugun darsga kelmadi. Raxima Academy.`,
-          status: 'pending'
-        });
+        try {
+          await smsService.logSms({
+            student_id: student.id,
+            phone: student.phone || "998900000000",
+            message: `Hurmatli ota-ona, farzandingiz ${student.name} bugun darsga kelmadi. Raxima Academy.`,
+            status: 'pending'
+          });
+        } catch (smsErr) {
+          console.error("Non-blocking SMS error:", smsErr);
+        }
       }
 
       alert("Davomat saqlandi va xabarlar yuborishga tayyorlandi!");

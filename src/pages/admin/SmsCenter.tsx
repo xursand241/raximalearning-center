@@ -79,7 +79,7 @@ export default function SmsCenter() {
                <p className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-1">Jami Yuborilgan</p>
                <h3 className="text-[32px] font-black text-[#141724] dark:text-white">{totalSent.toLocaleString()}</h3>
                <div className="flex items-center text-[13px] font-bold text-gray-500 mt-2">
-                 Limit: 10,000 SMS
+                 Limit: Ma'lumot yo'q
                </div>
             </CardContent>
          </Card>
@@ -154,35 +154,35 @@ export default function SmsCenter() {
                 <CardTitle className="text-[18px] font-black text-[#141724] dark:text-white">API Sozlamalari</CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Eskiz.uz Email</label>
-                  <Input defaultValue="api@eskiz.uz" className="h-11 bg-gray-50 dark:bg-white/5 border-none rounded-xl font-medium" disabled />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Secret Token</label>
-                  <Input type="password" defaultValue="**********************" className="h-11 bg-gray-50 dark:bg-white/5 border-none rounded-xl" disabled />
-                </div>
+                 <div className="space-y-1.5">
+                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Eskiz.uz Email</label>
+                   <Input defaultValue="sozlanmagan@eskiz.uz" className="h-11 bg-gray-50 dark:bg-white/5 border-none rounded-xl font-medium" disabled />
+                 </div>
+                 <div className="space-y-1.5">
+                   <label className="text-[13px] font-bold text-gray-700 dark:text-gray-400">Secret Token</label>
+                   <Input type="password" defaultValue="**********************" className="h-11 bg-gray-50 dark:bg-white/5 border-none rounded-xl" disabled />
+                 </div>
                 
-                <div className="pt-4 space-y-3">
-                   <div className="flex items-center justify-between p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-transparent hover:border-indigo-500/20 transition-all cursor-pointer group">
-                      <div>
-                         <p className="text-[14px] font-black text-[#141724] dark:text-white">Davomat SMS</p>
-                         <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-1">Yo'qlama holatida</p>
-                      </div>
-                      <div className="w-10 h-5 rounded-full bg-indigo-600 relative">
-                         <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                   </div>
-                   <div className="flex items-center justify-between p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-transparent hover:border-emerald-500/20 transition-all cursor-pointer">
-                      <div>
-                         <p className="text-[14px] font-black text-[#141724] dark:text-white">To'lov SMS</p>
-                         <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-1">Eslatmalar haqida</p>
-                      </div>
-                      <div className="w-10 h-5 rounded-full bg-emerald-600 relative">
-                         <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                   </div>
-                </div>
+                 <div className="pt-4 space-y-3">
+                    <div className="flex items-center justify-between p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-transparent opacity-50 cursor-not-allowed">
+                       <div>
+                          <p className="text-[14px] font-black text-[#141724] dark:text-white">Davomat SMS</p>
+                          <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-1">Sozlanmagan</p>
+                       </div>
+                       <div className="w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-700 relative">
+                          <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+                       </div>
+                    </div>
+                    <div className="flex items-center justify-between p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-transparent opacity-50 cursor-not-allowed">
+                       <div>
+                          <p className="text-[14px] font-black text-[#141724] dark:text-white">To'lov SMS</p>
+                          <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-1">Sozlanmagan</p>
+                       </div>
+                       <div className="w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-700 relative">
+                          <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+                       </div>
+                    </div>
+                 </div>
             </CardContent>
          </Card>
       </div>
