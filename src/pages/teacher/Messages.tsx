@@ -8,9 +8,27 @@ export default function Messages() {
   
   const [activeChatId, setActiveChatId] = useState(1);
   
-  const [chatData, setChatData] = useState<any>({});
+  const [chatData, setChatData] = useState<any>({
+    1: {
+      id: 1,
+      name: "Akira Isayama",
+      online: true,
+      messages: [
+        { id: 1, sender: "Akira", text: "Assalomu alaykum ustoz, bugungi dars qaysi xonada bo'ladi?", time: "09:00" },
+        { id: 2, sender: "Siz", text: "Vaalaykum assalom, 4-xonada.", time: "09:05" }
+      ]
+    },
+    2: {
+      id: 2,
+      name: "Jahongir (IELTS Foundation)",
+      online: false,
+      messages: [
+        { id: 1, sender: "Jahongir", text: "Vazifani jo'natdim.", time: "Kecha" }
+      ]
+    }
+  });
 
-  const activeChat = chatData[activeChatId as keyof typeof chatData];
+  const activeChat = chatData[activeChatId] || { name: "", messages: [], online: false };
 
   const scrollToBottom = () => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,12 +43,12 @@ export default function Messages() {
   const handleSend = () => {
     if(!message.trim()) return;
     
-    setChatData(prev => ({
+    setChatData((prev: any) => ({
       ...prev,
       [activeChatId]: {
-        ...prev[activeChatId as keyof typeof chatData],
+        ...prev[activeChatId],
         messages: [
-          ...prev[activeChatId as keyof typeof chatData].messages,
+          ...prev[activeChatId].messages,
           { id: Date.now(), sender: "Siz", text: message, time: "Hozir" }
         ]
       }
@@ -54,7 +72,7 @@ export default function Messages() {
           <div className="px-3 pb-2 pt-1 font-bold text-gray-500 text-[12px] uppercase tracking-widest border-b border-gray-50 dark:border-white/5 mb-2 shrink-0">So'nggi suhbatlar</div>
           
           <div className="flex-1 overflow-y-auto scrollbar-thin">
-            {Object.values(chatData).map(chat => {
+            {(Object.values(chatData) as any[]).map(chat => {
                const lastMsg = chat.messages[chat.messages.length - 1];
                const isActive = activeChatId === chat.id;
                return (
