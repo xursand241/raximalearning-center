@@ -127,7 +127,7 @@ export default function DashboardOverview() {
       </div>
 
       {/* Hero Stats */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, i) => (
           <Card key={i} className={`border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none bg-white dark:bg-[#141724] rounded-2xl overflow-hidden group transition-all duration-500 hover:-translate-y-1 ${isLoading ? 'animate-pulse' : ''}`}>
             <CardContent className="p-6 relative">

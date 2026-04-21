@@ -40,9 +40,7 @@ export default function AdminLayout() {
   // In production, we'd be stricter.
   const isAdmin = user?.role === "admin" || user?.role === "superadmin"; 
 
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-    "Foydalanuvchilar": true, // Kept open by default to match screenshot
-  });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (!isAuthenticated && !isAdmin) {
     return <Navigate to="/auth/login" />;
@@ -55,11 +53,22 @@ export default function AdminLayout() {
   return (
     <div className="flex h-screen w-full bg-[#f4f7f6] dark:bg-[#0f111a] overflow-hidden font-sans">
       
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[30] lg:hidden animate-in fade-in duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar - Precision matching the premium deep-dark aesthetic */}
-      <aside className="w-[280px] h-full bg-[#141724] text-slate-300 flex flex-col relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.1)]">
+      <aside className={cn(
+        "fixed inset-y-0 left-0 lg:relative lg:inset-auto w-[280px] h-full bg-[#141724] text-slate-300 flex flex-col z-[40] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.1)]",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
         
         {/* Logo Section */}
-        <div className="h-20 flex items-center justify-between px-6 shrink-0 relative">
+        <div className="h-20 flex items-center justify-between px-6 shrink-0 relative border-b border-white/[0.03]">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-[12px] bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.4)]">
                <BookOpen className="w-5 h-5 text-white" />
@@ -69,7 +78,10 @@ export default function AdminLayout() {
                <span className="font-extrabold text-[#7c92ff] text-[15px] italic tracking-tight">ACADEMY</span>
              </div>
           </div>
-          <button className="w-8 h-8 rounded-md bg-[#1f2334] flex items-center justify-center hover:bg-[#2a2f45] transition-colors text-slate-400">
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden w-8 h-8 rounded-md bg-[#1f2334] flex items-center justify-center hover:bg-[#2a2f45] transition-colors text-slate-400"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -108,6 +120,7 @@ export default function AdminLayout() {
                           <Link
                             key={subItem.path}
                             to={subItem.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
                               "flex items-center gap-3 pl-11 pr-3 py-[8px] rounded-[10px] text-[14px] font-medium transition-all duration-200 relative",
                               isActive 
@@ -131,6 +144,7 @@ export default function AdminLayout() {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-[11px] rounded-[10px] text-[14.5px] font-semibold transition-all duration-200 group relative mb-1",
                     isActive 
@@ -182,8 +196,16 @@ export default function AdminLayout() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0e14]">
         {/* Modern Header */}
-        <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-10 shrink-0 z-10 border-b border-gray-100 dark:border-white/5 sticky top-0">
-           <div className="flex-1 max-w-xl">
+        <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-10 shrink-0 z-10 border-b border-gray-100 dark:border-white/5 sticky top-0 gap-4">
+           {/* Mobile Menu Button */}
+           <button 
+             onClick={() => setIsMobileMenuOpen(true)}
+             className="lg:hidden w-11 h-11 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all shadow-sm"
+           >
+             <Menu className="w-5 h-5" />
+           </button>
+
+           <div className="flex-1 max-w-xl hidden sm:block">
               <div className="relative group">
                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                  <input 
@@ -191,34 +213,38 @@ export default function AdminLayout() {
                    placeholder="Tizim bo'ylab qidirish..." 
                    className="w-full bg-slate-100/50 dark:bg-white/5 border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-card rounded-2xl py-2.5 pl-11 pr-4 text-sm font-medium transition-all outline-none"
                  />
-                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 hidden md:flex">
                     <kbd className="px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/10 text-[10px] font-bold text-slate-400 bg-white dark:bg-white/5">⌘</kbd>
                     <kbd className="px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/10 text-[10px] font-bold text-slate-400 bg-white dark:bg-white/5">K</kbd>
                  </div>
               </div>
            </div>
 
-           <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
-                 <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all hover:shadow-sm relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b0e14]"></span>
+           <div className="flex-1 sm:hidden">
+              <h2 className="font-black text-xs tracking-widest text-[#141724] dark:text-white uppercase truncate">Admin Portal</h2>
+           </div>
+
+           <div className="flex items-center gap-2 sm:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                 <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all hover:shadow-sm relative">
+                    <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white dark:border-[#0b0e14]"></span>
                  </button>
-                 <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all hover:shadow-sm">
+                 <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all hover:shadow-sm hidden sm:flex">
                     <Settings className="w-5 h-5" />
                  </button>
               </div>
 
-              <div className="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
+              <div className="h-8 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
 
-              <div className="flex items-center gap-2">
-                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                 <span className="text-xs font-bold text-slate-500 dark:text-gray-400 tracking-wide uppercase">Tizim Online</span>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                 <span className="text-[10px] font-black text-slate-500 dark:text-gray-400 tracking-wider uppercase hidden sm:inline">Online</span>
               </div>
            </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-10 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-10 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
           <div className="mx-auto max-w-7xl">
              <Outlet />
           </div>

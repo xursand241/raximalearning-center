@@ -21,7 +21,21 @@ export default function TeacherLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
@@ -59,6 +73,7 @@ export default function TeacherLayout() {
   const handleSearchSelect = (path: string) => {
     navigate(path);
     setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
     setSearchQuery("");
   };
 
@@ -70,15 +85,24 @@ export default function TeacherLayout() {
   return (
     <div className="flex h-screen w-full bg-[#f8fafc] dark:bg-[#0b0e14] overflow-hidden font-sans">
       
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-[#0f172a]/70 backdrop-blur-sm z-[30] lg:hidden animate-in fade-in duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar - Indigo/Deep Dark Premium Aesthetic */}
       <aside className={cn(
-        "h-full bg-[#0f172a] text-slate-300 flex flex-col relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300",
-        isSidebarOpen ? "w-[280px]" : "w-[80px]"
+        "fixed inset-y-0 left-0 lg:relative lg:inset-auto h-full bg-[#0f172a] text-slate-300 flex flex-col z-[40] shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
+        isSidebarOpen ? "w-[280px]" : "w-[80px]",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         
         {/* Logo Section */}
         <div className="h-20 flex items-center justify-between px-6 shrink-0 border-b border-white/5">
-          <div className={cn("flex items-center gap-3 overflow-hidden transition-all duration-300", isSidebarOpen ? "opacity-100" : "opacity-0 w-0")}>
+          <div className={cn("flex items-center gap-3 overflow-hidden transition-all duration-300", (isSidebarOpen || isMobileMenuOpen) ? "opacity-100" : "opacity-0 w-0")}>
              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.3)]">
                <GraduationCap className="w-5 h-5 text-white" />
              </div>
@@ -88,10 +112,16 @@ export default function TeacherLayout() {
              </div>
           </div>
           <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            onClick={() => {
+              if (window.innerWidth <= 1024) {
+                setIsMobileMenuOpen(false);
+              } else {
+                setIsSidebarOpen(!isSidebarOpen);
+              }
+            }}
             className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors text-slate-400"
           >
-            {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            {(isSidebarOpen || isMobileMenuOpen) ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
 
@@ -106,6 +136,7 @@ export default function TeacherLayout() {
                 <Link
                   key={link.path}
                   to={link.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-3 rounded-xl text-[14.5px] font-semibold transition-all duration-300 group relative",
                     isActive 
@@ -114,12 +145,12 @@ export default function TeacherLayout() {
                   )}
                 >
                   <Icon className={cn("w-[20px] h-[20px] transition-transform duration-300 group-hover:scale-110", isActive ? "text-white" : "text-slate-500 group-hover:text-indigo-400")} strokeWidth={2.2} />
-                  {isSidebarOpen && (
+                  {(isSidebarOpen || (isMobileMenuOpen && window.innerWidth <= 1024)) && (
                     <span className="flex-1 whitespace-nowrap transition-all duration-300">
                       {link.name}
                     </span>
                   )}
-                  {isActive && isSidebarOpen && (
+                  {isActive && (isSidebarOpen || isMobileMenuOpen) && (
                     <ChevronRight className="w-4 h-4 text-white opacity-50" />
                   )}
                 </Link>
@@ -132,13 +163,13 @@ export default function TeacherLayout() {
         <div className="p-4 mt-auto border-t border-white/5">
            <div className={cn(
              "bg-indigo-950/30 rounded-2xl p-3 flex items-center gap-3 border border-white/5 transition-all duration-300",
-             isSidebarOpen ? "justify-start" : "justify-center"
+             (isSidebarOpen || isMobileMenuOpen) ? "justify-start" : "justify-center"
            )}>
               <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white relative shrink-0">
                 {user?.name?.[0] || "O"}
                 <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#0f172a]"></span>
               </div>
-              {isSidebarOpen && (
+              {(isSidebarOpen || isMobileMenuOpen) && (
                 <div className="flex flex-col min-w-0">
                    <span className="text-sm font-bold text-white leading-tight truncate">{user?.name || "O'qituvchi"}</span>
                    <span className="text-[10px] font-extrabold text-indigo-400 tracking-wider uppercase mt-0.5">Teacher</span>
@@ -153,11 +184,11 @@ export default function TeacherLayout() {
              }}
              className={cn(
                "flex items-center gap-3 w-full mt-3 py-3 rounded-xl text-[13px] font-bold text-rose-400 hover:bg-rose-500/10 transition-all group",
-               isSidebarOpen ? "px-3" : "justify-center"
+               (isSidebarOpen || isMobileMenuOpen) ? "px-3" : "justify-center"
              )}
            >
              <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" strokeWidth={2.5} />
-             {isSidebarOpen && <span>CHIQISH</span>}
+             {(isSidebarOpen || isMobileMenuOpen) && <span>CHIQISH</span>}
            </button>
         </div>
       </aside>
@@ -165,8 +196,16 @@ export default function TeacherLayout() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Modern Header */}
-         <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-10 shrink-0 z-10 border-b border-slate-100 dark:border-white/5 sticky top-0">
-            <div className="flex-1 max-w-xl">
+         <header className="h-20 bg-white/80 dark:bg-[#0b0e14]/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-10 shrink-0 z-10 border-b border-slate-100 dark:border-white/5 sticky top-0 gap-4">
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden w-11 h-11 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-primary transition-all shadow-sm"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="flex-1 max-w-xl hidden sm:block">
                <div ref={searchRef} className="relative z-50">
                   <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -215,28 +254,36 @@ export default function TeacherLayout() {
                </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
-                 <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-indigo-500 transition-all relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white dark:border-[#0b0e14]"></span>
+            <div className="flex-1 sm:hidden">
+              <h2 className="font-black text-xs tracking-widest text-[#0f172a] dark:text-white uppercase truncate">Teacher Portal</h2>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                 <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-indigo-500 transition-all relative">
+                    <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-indigo-500 rounded-full border border-white dark:border-[#0b0e14]"></span>
                  </button>
               </div>
 
-              <div className="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
+              <div className="h-8 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
 
-              <div className="flex items-center gap-2">
-                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                 <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">Sinf Online</span>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                 <span className="text-[10px] font-black text-slate-500 tracking-wide uppercase hidden sm:inline">Online</span>
               </div>
            </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 relative bg-[#f8fafc] dark:bg-[#0b0e14]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 relative bg-[#f8fafc] dark:bg-[#0b0e14]">
           <div className="max-w-6xl mx-auto">
              <Outlet />
           </div>
         </div>
+      </main>
+    </div>
+  );
+}
       </main>
     </div>
   );
